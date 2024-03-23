@@ -502,6 +502,166 @@ end Lattice
 
 end Finset
 
+namespace Mathlib.Meta
+open Lean Elab Term Meta Batteries.ExtendedBinder
+
+/-- Elaborate set builder notation for `Finset`.
+
+* `{x ≤ a | p x}` is elaborated as `Finset.filter (fun x ↦ p x) (Finset.Iic a)` if the expected type
+  is `Finset ?α`.
+* `{x ≥ a | p x}` is elaborated as `Finset.filter (fun x ↦ p x) (Finset.Ici a)` if the expected type
+  is `Finset ?α`.
+* `{x < a | p x}` is elaborated as `Finset.filter (fun x ↦ p x) (Finset.Iio a)` if the expected type
+  is `Finset ?α`.
+* `{x > a | p x}` is elaborated as `Finset.filter (fun x ↦ p x) (Finset.Ioi a)` if the expected type
+  is `Finset ?α`.
+
+See also
+* `Init.Set` for the `Set` builder notation elaborator that this elaborator partly overrides.
+* `Data.Finset.Basic` for the `Finset` builder notation elaborator partly overriding this one for
+  syntax of the form `{x ∈ s | p x}`.
+* `Data.Fintype.Basic` for the `Finset` builder notation elaborator handling syntax of the form
+  `{x | p x}`, `{x : α | p x}`, `{x ∉ s | p x}`, `{x ≠ a | p x}`.
+
+TODO: Write a delaborator
+-/
+@[term_elab setBuilder]
+def elabFinsetBuilderIxx : TermElab
+  | `({ $x:ident ≤ $a | $p }), expectedType? => do
+    -- Since we want to reason about the expected type, wait for it to be available if possible.
+    tryPostponeIfNoneOrMVar expectedType?
+    -- If the expected type is not known to be `Finset ?α`, give up.
+    unless ← knownToBeFinsetNotSet expectedType? do throwUnsupportedSyntax
+    elabTerm (← `(Finset.filter (fun $x:ident ↦ $p) (Finset.Iic $a))) expectedType?
+  | `({ $x:ident ≥ $a | $p }), expectedType? => do
+    -- Since we want to reason about the expected type, wait for it to be available if possible.
+    tryPostponeIfNoneOrMVar expectedType?
+    -- If the expected type is not known to be `Finset ?α`, give up.
+    unless ← knownToBeFinsetNotSet expectedType? do throwUnsupportedSyntax
+    elabTerm (← `(Finset.filter (fun $x:ident ↦ $p) (Finset.Ici $a))) expectedType?
+  | `({ $x:ident < $a | $p }), expectedType? => do
+    -- Since we want to reason about the expected type, wait for it to be available if possible.
+    tryPostponeIfNoneOrMVar expectedType?
+    -- If the expected type is not known to be `Finset ?α`, give up.
+    unless ← knownToBeFinsetNotSet expectedType? do throwUnsupportedSyntax
+    elabTerm (← `(Finset.filter (fun $x:ident ↦ $p) (Finset.Iio $a))) expectedType?
+  | `({ $x:ident > $a | $p }), expectedType? => do
+    -- Since we want to reason about the expected type, wait for it to be available if possible.
+    tryPostponeIfNoneOrMVar expectedType?
+    -- If the expected type is not known to be `Finset ?α`, give up.
+    unless ← knownToBeFinsetNotSet expectedType? do throwUnsupportedSyntax
+    elabTerm (← `(Finset.filter (fun $x:ident ↦ $p) (Finset.Ioi $a))) expectedType?
+  | _, _ => throwUnsupportedSyntax
+
+end Mathlib.Meta
+
+/-! ### Intervals as multisets -/
+
+
+namespace Multiset
+
+variable [Preorder α]
+
+section LocallyFiniteOrder
+
+variable [LocallyFiniteOrder α]
+
+/-- The multiset of elements `x` such that `a ≤ x` and `x ≤ b`. Basically `Set.Icc a b` as a
+multiset. -/
+def Icc (a b : α) : Multiset α :=
+  (Finset.Icc a b).val
+#align multiset.Icc Multiset.Icc
+
+/-- The multiset of elements `x` such that `a ≤ x` and `x < b`. Basically `Set.Ico a b` as a
+multiset. -/
+def Ico (a b : α) : Multiset α :=
+  (Finset.Ico a b).val
+#align multiset.Ico Multiset.Ico
+
+/-- The multiset of elements `x` such that `a < x` and `x ≤ b`. Basically `Set.Ioc a b` as a
+multiset. -/
+def Ioc (a b : α) : Multiset α :=
+  (Finset.Ioc a b).val
+#align multiset.Ioc Multiset.Ioc
+
+/-- The multiset of elements `x` such that `a < x` and `x < b`. Basically `Set.Ioo a b` as a
+multiset. -/
+def Ioo (a b : α) : Multiset α :=
+  (Finset.Ioo a b).val
+#align multiset.Ioo Multiset.Ioo
+
+@[simp]
+theorem mem_Icc {a b x : α} : x ∈ Icc a b ↔ a ≤ x ∧ x ≤ b := by
+  rw [Icc, ← Finset.mem_def, Finset.mem_Icc]
+#align multiset.mem_Icc Multiset.mem_Icc
+
+@[simp]
+theorem mem_Ico {a b x : α} : x ∈ Ico a b ↔ a ≤ x ∧ x < b := by
+  rw [Ico, ← Finset.mem_def, Finset.mem_Ico]
+#align multiset.mem_Ico Multiset.mem_Ico
+
+@[simp]
+theorem mem_Ioc {a b x : α} : x ∈ Ioc a b ↔ a < x ∧ x ≤ b := by
+  rw [Ioc, ← Finset.mem_def, Finset.mem_Ioc]
+#align multiset.mem_Ioc Multiset.mem_Ioc
+
+@[simp]
+theorem mem_Ioo {a b x : α} : x ∈ Ioo a b ↔ a < x ∧ x < b := by
+  rw [Ioo, ← Finset.mem_def, Finset.mem_Ioo]
+#align multiset.mem_Ioo Multiset.mem_Ioo
+
+end LocallyFiniteOrder
+
+section LocallyFiniteOrderTop
+
+variable [LocallyFiniteOrderTop α]
+
+/-- The multiset of elements `x` such that `a ≤ x`. Basically `Set.Ici a` as a multiset. -/
+def Ici (a : α) : Multiset α :=
+  (Finset.Ici a).val
+#align multiset.Ici Multiset.Ici
+
+/-- The multiset of elements `x` such that `a < x`. Basically `Set.Ioi a` as a multiset. -/
+def Ioi (a : α) : Multiset α :=
+  (Finset.Ioi a).val
+#align multiset.Ioi Multiset.Ioi
+
+@[simp]
+theorem mem_Ici {a x : α} : x ∈ Ici a ↔ a ≤ x := by rw [Ici, ← Finset.mem_def, Finset.mem_Ici]
+#align multiset.mem_Ici Multiset.mem_Ici
+
+@[simp]
+theorem mem_Ioi {a x : α} : x ∈ Ioi a ↔ a < x := by rw [Ioi, ← Finset.mem_def, Finset.mem_Ioi]
+#align multiset.mem_Ioi Multiset.mem_Ioi
+
+end LocallyFiniteOrderTop
+
+section LocallyFiniteOrderBot
+
+variable [LocallyFiniteOrderBot α]
+
+/-- The multiset of elements `x` such that `x ≤ b`. Basically `Set.Iic b` as a multiset. -/
+def Iic (b : α) : Multiset α :=
+  (Finset.Iic b).val
+#align multiset.Iic Multiset.Iic
+
+/-- The multiset of elements `x` such that `x < b`. Basically `Set.Iio b` as a multiset. -/
+def Iio (b : α) : Multiset α :=
+  (Finset.Iio b).val
+#align multiset.Iio Multiset.Iio
+
+@[simp]
+theorem mem_Iic {b x : α} : x ∈ Iic b ↔ x ≤ b := by rw [Iic, ← Finset.mem_def, Finset.mem_Iic]
+#align multiset.mem_Iic Multiset.mem_Iic
+
+@[simp]
+theorem mem_Iio {b x : α} : x ∈ Iio b ↔ x < b := by rw [Iio, ← Finset.mem_def, Finset.mem_Iio]
+#align multiset.mem_Iio Multiset.mem_Iio
+
+end LocallyFiniteOrderBot
+
+end Multiset
+
 /-! ### Finiteness of `Set` intervals -/
 
 
