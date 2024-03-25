@@ -2618,8 +2618,11 @@ TODO: Write a delaborator
 @[term_elab setBuilder]
 def elabFinsetBuilderSep : TermElab
   | `({ $x:ident ∈ $s:term | $p }), expectedType? => do
-    -- Since we want to reason about the expected type, wait for it to be available if possible.
-    tryPostponeIfNoneOrMVar expectedType?
+    -- AS we want to reason about the expected type, we would like to wait for it to be available.
+    -- However this means that if we fall back on `elabSetBuilder` we will have postponed.
+    -- This is undesirable as we want set builder notation to quickly elaborate to a `Set` when no
+    -- expected type is available.
+    -- tryPostponeIfNoneOrMVar expectedType?
     -- If the expected type is known to be `Set ?α`, give up. If it is not known to be `Set ?α` or
     -- `Finset ?α`, check the expected type of `s`.
     unless ← knownToBeFinsetNotSet expectedType? do
