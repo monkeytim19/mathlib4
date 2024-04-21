@@ -810,14 +810,17 @@ end OrderDual
 
 section StrictOrderedSemiring
 variable [StrictOrderedSemiring α] [OrderedAddCommMonoid β] [Module α β] [ExistsAddOfLE α]
-  [ExistsAddOfLE β]
+  [ExistsAddOfLEOrGE β]
 
 section PosSMulMono
-variable [PosSMulMono α β] [ContravariantClass β β (· + ·) (· ≤ ·)] {a₁ a₂ : α} {b₁ b₂ : β}
+variable [PosSMulMono α β] [ContravariantClass β β (· + ·) (· ≤ ·)]
 
 /-- Binary **rearrangement inequality**. -/
 lemma smul_add_smul_le_smul_add_smul (ha : a₁ ≤ a₂) (hb : b₁ ≤ b₂) :
     a₁ • b₂ + a₂ • b₁ ≤ a₁ • b₁ + a₂ • b₂ := by
+  clear a b
+  wlog _ : ExistsAddOfLE β
+  · exact this (β := βᵒᵈ) ha hb ((existsAddOfLE_or_existsAddOfLE_orderDual β).resolve_left ‹_›)
   obtain ⟨a, ha₀, rfl⟩ := le_iff_exists_nonneg_add.1 ha
   obtain ⟨b, hb₀, rfl⟩ := le_iff_exists_nonneg_add.1 hb
   rw [smul_add, add_right_comm, smul_add, ← add_assoc, add_smul _ _ b]
@@ -834,11 +837,14 @@ end PosSMulMono
 
 section PosSMulStrictMono
 variable [PosSMulStrictMono α β] [CovariantClass β β (· + ·) (· < ·)]
-    [ContravariantClass β β (· + ·) (· < ·)] {a₁ a₂ : α} {b₁ b₂ : β}
+    [ContravariantClass β β (· + ·) (· < ·)]
 
 /-- Binary strict **rearrangement inequality**. -/
 lemma smul_add_smul_lt_smul_add_smul (ha : a₁ < a₂) (hb : b₁ < b₂) :
     a₁ • b₂ + a₂ • b₁ < a₁ • b₁ + a₂ • b₂ := by
+  clear a b
+  wlog _ : ExistsAddOfLE β
+  · exact this (β := βᵒᵈ) ha hb ((existsAddOfLE_or_existsAddOfLE_orderDual β).resolve_left ‹_›)
   obtain ⟨a, ha₀, rfl⟩ := lt_iff_exists_pos_add.1 ha
   obtain ⟨b, hb₀, rfl⟩ := lt_iff_exists_pos_add.1 hb
   rw [smul_add, add_right_comm, smul_add, ← add_assoc, add_smul _ _ b]

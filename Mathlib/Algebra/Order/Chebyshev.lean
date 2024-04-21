@@ -49,7 +49,7 @@ variable {ι α β : Type*}
 
 section SMul
 variable [LinearOrderedSemiring α] [LinearOrderedAddCommMonoid β] [ExistsAddOfLE α]
-  [ExistsAddOfLE β] [ContravariantClass β β (· + ·) (· ≤ ·)] [Module α β] [OrderedSMul α β]
+  [ExistsAddOfLEOrGE β] [ContravariantClass β β (· + ·) (· ≤ ·)] [Module α β] [OrderedSMul α β]
   {s : Finset ι} {σ : Perm ι} {f : ι → α} {g : ι → β}
 
 /-- **Chebyshev's Sum Inequality**: When `f` and `g` monovary together (eg they are both
@@ -68,12 +68,8 @@ theorem MonovaryOn.sum_smul_sum_le_card_smul_sum (hfg : MonovaryOn f g s) :
 other is antitone), the scalar product of their sum is less than the size of the set times their
 scalar product. -/
 theorem AntivaryOn.card_smul_sum_le_sum_smul_sum (hfg : AntivaryOn f g s) :
-    s.card • ∑ i ∈ s, f i • g i ≤ (∑ i ∈ s, f i) • ∑ i ∈ s, g i := by
-  classical
-  obtain ⟨σ, hσ, hs⟩ := s.countable_toSet.exists_cycleOn
-  rw [← card_range s.card, sum_smul_sum_eq_sum_perm hσ]
-  exact card_nsmul_le_sum _ _ _ fun n _ ↦
-    hfg.sum_smul_le_sum_smul_comp_perm fun x hx ↦ hs fun h ↦ hx <| IsFixedPt.perm_pow h _
+    s.card • ∑ i ∈ s, f i • g i ≤ (∑ i ∈ s, f i) • ∑ i ∈ s, g i :=
+  hfg.dual_right.sum_smul_sum_le_card_smul_sum
 #align antivary_on.card_smul_sum_le_sum_smul_sum AntivaryOn.card_smul_sum_le_sum_smul_sum
 
 variable [Fintype ι]
@@ -91,7 +87,7 @@ other is antitone), the scalar product of their sum is less than the size of the
 scalar product. -/
 theorem Antivary.card_smul_sum_le_sum_smul_sum (hfg : Antivary f g) :
     Fintype.card ι • ∑ i, f i • g i ≤ (∑ i, f i) • ∑ i, g i :=
-  (hfg.antivaryOn _).card_smul_sum_le_sum_smul_sum
+  (hfg.dual_right.monovaryOn _).sum_smul_sum_le_card_smul_sum
 #align antivary.card_smul_sum_le_sum_smul_sum Antivary.card_smul_sum_le_sum_smul_sum
 
 end SMul
@@ -119,23 +115,23 @@ theorem MonovaryOn.sum_mul_sum_le_card_mul_sum (hfg : MonovaryOn f g s) :
 other is antitone), the product of their sum is greater than the size of the set times their scalar
 product. -/
 theorem AntivaryOn.card_mul_sum_le_sum_mul_sum (hfg : AntivaryOn f g s) :
-    ((s.card : α) * ∑ i ∈ s, f i * g i) ≤ (∑ i ∈ s, f i) * ∑ i ∈ s, g i := by
+    (s.card : α) * ∑ i ∈ s, f i * g i ≤ (∑ i ∈ s, f i) * ∑ i ∈ s, g i := by
   rw [← nsmul_eq_mul]
   exact hfg.card_smul_sum_le_sum_smul_sum
 #align antivary_on.card_mul_sum_le_sum_mul_sum AntivaryOn.card_mul_sum_le_sum_mul_sum
 
 /-- Special case of **Jensen's inequality** for sums of powers. -/
 lemma pow_sum_le_card_mul_sum_pow (hf : ∀ i ∈ s, 0 ≤ f i) :
-    ∀ n, (∑ i in s, f i) ^ (n + 1) ≤ (s.card : α) ^ n * ∑ i in s, f i ^ (n + 1)
+    ∀ n, (∑ i ∈ s, f i) ^ (n + 1) ≤ (s.card : α) ^ n * ∑ i ∈ s, f i ^ (n + 1)
   | 0 => by simp
   | n + 1 =>
     calc
-      _ = (∑ i in s, f i) ^ (n + 1) * ∑ i in s, f i := by rw [pow_succ]
-      _ ≤ (s.card ^ n * ∑ i in s, f i ^ (n + 1)) * ∑ i in s, f i := by
+      _ = (∑ i ∈ s, f i) ^ (n + 1) * ∑ i ∈ s, f i := by rw [pow_succ]
+      _ ≤ (s.card ^ n * ∑ i ∈ s, f i ^ (n + 1)) * ∑ i ∈ s, f i := by
         gcongr
         exacts [sum_nonneg hf, pow_sum_le_card_mul_sum_pow hf _]
-      _ = s.card ^ n * ((∑ i in s, f i ^ (n + 1)) * ∑ i in s, f i) := by rw [mul_assoc]
-      _ ≤ s.card ^ n * (s.card * ∑ i in s, f i ^ (n + 1) * f i) := by
+      _ = s.card ^ n * ((∑ i ∈ s, f i ^ (n + 1)) * ∑ i ∈ s, f i) := by rw [mul_assoc]
+      _ ≤ s.card ^ n * (s.card * ∑ i ∈ s, f i ^ (n + 1) * f i) := by
         gcongr _ * ?_
         exact ((monovaryOn_self ..).pow_left₀ hf _).sum_mul_sum_le_card_mul_sum
       _ = _ := by simp_rw [← mul_assoc, ← pow_succ]
@@ -171,7 +167,7 @@ variable [LinearOrderedSemifield α] [ExistsAddOfLE α] {s : Finset ι} {f : ι 
 
 /-- Special case of **Jensen's inequality** for sums of powers. -/
 lemma pow_sum_div_card_le_sum_pow (hf : ∀ i ∈ s, 0 ≤ f i) (n : ℕ) :
-    (∑ i in s, f i) ^ (n + 1) / s.card ^ n ≤ ∑ i in s, f i ^ (n + 1) := by
+    (∑ i ∈ s, f i) ^ (n + 1) / s.card ^ n ≤ ∑ i ∈ s, f i ^ (n + 1) := by
   obtain rfl | hs := s.eq_empty_or_nonempty
   · simp
   rw [div_le_iff, mul_comm]
