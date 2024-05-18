@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import Mathlib.Data.Countable.Basic
+import Mathlib.Data.Nat.Interval
 import Mathlib.Logic.Encodable.Basic
-import Mathlib.Order.SuccPred.Basic
+import Mathlib.Order.Hom.Basic
 import Mathlib.Order.Interval.Finset.Defs
+import Mathlib.Order.SuccPred.Basic
 
 #align_import order.succ_pred.linear_locally_finite from "leanprover-community/mathlib"@"2705404e701abc6b3127da906f40bae062a169c9"
 

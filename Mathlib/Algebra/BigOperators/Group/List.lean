@@ -23,7 +23,7 @@ of elements of a list and `List.alternatingProd`, `List.alternatingSum`, their a
 counterparts.
 -/
 
--- Make sure we haven't imported `Data.Nat.Order.Basic`
+-- Make sure we haven't imported `Algebra.Order.Group.Nat`
 assert_not_exists OrderedSub
 assert_not_exists Ring
 
@@ -33,7 +33,6 @@ namespace List
 section Defs
 
 /-- Product of a list.
-
 `List.prod [a, b, c] = ((1 * a) * b) * c` -/
 @[to_additive "Sum of a list.\n\n`List.sum [a, b, c] = ((0 + a) + b) + c`"]
 def prod {α} [Mul α] [One α] : List α → α :=
@@ -661,7 +660,7 @@ theorem sum_map_count_dedup_filter_eq_countP (p : α → Bool) (l : List α) :
         | false => simp only
     · by_cases hp : p a
       · refine _root_.trans (sum_map_eq_nsmul_single a _ fun _ h _ => by simp [h]) ?_
-        simp [hp, count_dedup]
+        simpa only [hp, count_filter, count_dedup, mem_cons, true_or, ↓reduceIte] using mul_one _
       · refine _root_.trans (List.sum_eq_zero fun n hn => ?_) (by simp [hp])
         obtain ⟨a', ha'⟩ := List.mem_map.1 hn
         split_ifs at ha' with ha
