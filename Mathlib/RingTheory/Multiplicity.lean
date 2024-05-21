@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis, Chris Hughes
 import Mathlib.Algebra.Associated
 import Mathlib.Algebra.BigOperators.Basic
 import Mathlib.Algebra.GroupPower.Ring
-import Mathlib.Algebra.SMulWithZero
+import Mathlib.Algebra.GroupWithZero.Action.Defs
 import Mathlib.Data.Nat.PartENat
 import Mathlib.Tactic.Linarith
 

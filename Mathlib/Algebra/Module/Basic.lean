@@ -5,8 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import Mathlib.Algebra.Module.Defs
 import Mathlib.Algebra.Function.Indicator
-import Mathlib.GroupTheory.GroupAction.Group
-import Mathlib.GroupTheory.GroupAction.Pi
+import Mathlib.Algebra.GroupWithZero.Action.Pi
 
 #align_import algebra.module.basic from "leanprover-community/mathlib"@"30413fc89f202a090a54d78e540963ed3de0056e"
 

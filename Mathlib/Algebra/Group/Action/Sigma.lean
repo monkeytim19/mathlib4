@@ -15,7 +15,7 @@ This file defines instances for arbitrary sum of additive and multiplicative act
 ## See also
 
 * `GroupTheory.GroupAction.Pi`
-* `GroupTheory.GroupAction.Prod`
+* `Algebra.Ring.Action`
 * `GroupTheory.GroupAction.Sum`
 -/
 

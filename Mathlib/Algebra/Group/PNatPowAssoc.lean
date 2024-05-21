@@ -3,11 +3,9 @@ Copyright (c) 2023 Scott Carnahan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Carnahan
 -/
-
-import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Prod
+import Mathlib.Algebra.GroupWithZero.Action.Defs
 import Mathlib.Data.PNat.Basic
-import Mathlib.GroupTheory.GroupAction.Prod
 
 /-!
 # Typeclasses for power-associative structures

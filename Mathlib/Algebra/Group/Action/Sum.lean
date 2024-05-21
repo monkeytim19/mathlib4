@@ -15,8 +15,8 @@ This file defines instances for additive and multiplicative actions on the binar
 ## See also
 
 * `GroupTheory.GroupAction.Option`
-* `GroupTheory.GroupAction.Pi`
-* `GroupTheory.GroupAction.Prod`
+* `Algebra.Group.Action.Pi`
+* `Algebra.Ring.Action`
 * `GroupTheory.GroupAction.Sigma`
 -/
 
