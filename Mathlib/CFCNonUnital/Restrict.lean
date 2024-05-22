@@ -94,7 +94,22 @@ end ContinuousMapZero
 namespace QuasispectrumRestricts
 
 local notation "σₙ" => quasispectrum
-open ContinuousMapZero
+open ContinuousMapZero Set
+
+/-- The homeomorphism `spectrum S a ≃ₜ spectrum R a` induced by `SpectrumRestricts a f`. -/
+def homeomorph {R S A : Type*} [Semifield R] [Field S] [Ring A]
+    [Algebra R S] [Algebra R A] [Algebra S A] [IsScalarTower R S A] [TopologicalSpace R]
+    [TopologicalSpace S] [ContinuousSMul R S] {a : A} {f : C(S, R)}
+    (h : QuasispectrumRestricts a f) :
+    σₙ S a ≃ₜ σₙ R a where
+  toFun := MapsTo.restrict f _ _ h.subset_preimage
+  invFun := MapsTo.restrict (algebraMap R S) _ _ (image_subset_iff.mp h.algebraMap_image.subset)
+  left_inv x := Subtype.ext <| h.rightInvOn x.2
+  right_inv x := Subtype.ext <| h.left_inv x
+  continuous_toFun := continuous_induced_rng.mpr <| f.continuous.comp continuous_induced_dom
+  continuous_invFun := continuous_induced_rng.mpr <| sorry
+    -- will be:
+    -- continuous_algebraMap R S |>.comp continuous_induced_dom
 
 -- PR #12643 https://github.com/leanprover-community/mathlib4/pull/12643
 lemma compactSpace {R S A : Type*} [Semifield R] [Field S] [NonUnitalRing A]
