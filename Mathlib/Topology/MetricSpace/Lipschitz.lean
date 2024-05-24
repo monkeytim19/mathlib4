@@ -3,7 +3,7 @@ Copyright (c) 2018 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
-import Mathlib.Data.Set.Intervals.ProjIcc
+import Mathlib.Order.Interval.Set.ProjIcc
 import Mathlib.Topology.Algebra.Order.Field
 import Mathlib.Topology.Bornology.Hom
 import Mathlib.Topology.EMetricSpace.Lipschitz
@@ -392,7 +392,7 @@ theorem LipschitzOnWith.extend_real {f : α → ℝ} {s : Set α} {K : ℝ≥0} 
   let g := fun y : α => iInf fun x : s => f x + K * dist y x
   have B : ∀ y : α, BddBelow (range fun x : s => f x + K * dist y x) := fun y => by
     rcases hs with ⟨z, hz⟩
-    refine' ⟨f z - K * dist y z, _⟩
+    refine ⟨f z - K * dist y z, ?_⟩
     rintro w ⟨t, rfl⟩
     dsimp
     rw [sub_le_iff_le_add, add_assoc, ← mul_add, add_comm (dist y t)]

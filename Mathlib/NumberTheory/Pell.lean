@@ -209,8 +209,8 @@ theorem y_neg (a : Solution₁ d) : (-a).y = -a.y :=
 theorem eq_zero_of_d_neg (h₀ : d < 0) (a : Solution₁ d) : a.x = 0 ∨ a.y = 0 := by
   have h := a.prop
   contrapose! h
-  have h1 := sq_pos_of_ne_zero a.x h.1
-  have h2 := sq_pos_of_ne_zero a.y h.2
+  have h1 := sq_pos_of_ne_zero h.1
+  have h2 := sq_pos_of_ne_zero h.2
   nlinarith
 #align pell.solution₁.eq_zero_of_d_neg Pell.Solution₁.eq_zero_of_d_neg
 
@@ -254,7 +254,7 @@ theorem eq_one_of_x_eq_one (h₀ : d ≠ 0) {a : Solution₁ d} (ha : a.x = 1) :
 
 /-- A solution is `1` or `-1` if and only if `y = 0`. -/
 theorem eq_one_or_neg_one_iff_y_eq_zero {a : Solution₁ d} : a = 1 ∨ a = -1 ↔ a.y = 0 := by
-  refine' ⟨fun H => H.elim (fun h => by simp [h]) fun h => by simp [h], fun H => _⟩
+  refine ⟨fun H => H.elim (fun h => by simp [h]) fun h => by simp [h], fun H => ?_⟩
   have prop := a.prop
   rw [H, sq (0 : ℤ), mul_zero, mul_zero, sub_zero, sq_eq_one_iff] at prop
   exact prop.imp (fun h => ext h H) fun h => ext h H
@@ -462,7 +462,7 @@ theorem exists_pos_of_not_isSquare (h₀ : 0 < d) (hd : ¬IsSquare d) :
   obtain ⟨x, y, h, hy⟩ := exists_of_not_isSquare h₀ hd
   refine' ⟨mk |x| |y| (by rwa [sq_abs, sq_abs]), _, abs_pos.mpr hy⟩
   rw [x_mk, ← one_lt_sq_iff_one_lt_abs, eq_add_of_sub_eq h, lt_add_iff_pos_right]
-  exact mul_pos h₀ (sq_pos_of_ne_zero y hy)
+  exact mul_pos h₀ (sq_pos_of_ne_zero hy)
 #align pell.solution₁.exists_pos_of_not_is_square Pell.Solution₁.exists_pos_of_not_isSquare
 
 end Solution₁
@@ -507,7 +507,7 @@ theorem d_nonsquare {a : Solution₁ d} (h : IsFundamental a) : ¬IsSquare d :=
 /-- If there is a fundamental solution, it is unique. -/
 theorem subsingleton {a b : Solution₁ d} (ha : IsFundamental a) (hb : IsFundamental b) : a = b := by
   have hx := le_antisymm (ha.2.2 hb.1) (hb.2.2 ha.1)
-  refine' Solution₁.ext hx _
+  refine Solution₁.ext hx ?_
   have : d * a.y ^ 2 = d * b.y ^ 2 := by rw [a.prop_y, b.prop_y, hx]
   exact (sq_eq_sq ha.2.1.le hb.2.1.le).mp (Int.eq_of_mul_eq_mul_left ha.d_pos.ne' this)
 #align pell.is_fundamental.subsingleton Pell.IsFundamental.subsingleton
@@ -666,7 +666,7 @@ theorem eq_pow_of_nonneg {a₁ : Solution₁ d} (h : IsFundamental a₁) {a : So
   induction' ax using Nat.strong_induction_on with x ih generalizing a
   rcases hay.eq_or_lt with hy | hy
   · -- case 1: `a = 1`
-    refine' ⟨0, _⟩
+    refine ⟨0, ?_⟩
     simp only [pow_zero]
     ext <;> simp only [x_one, y_one]
     · have prop := a.prop

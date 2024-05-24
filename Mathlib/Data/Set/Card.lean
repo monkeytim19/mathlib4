@@ -298,7 +298,7 @@ theorem encard_le_one_iff_eq : s.encard ≤ 1 ↔ s = ∅ ∨ ∃ x, s = {x} := 
 
 theorem encard_le_one_iff : s.encard ≤ 1 ↔ ∀ a b, a ∈ s → b ∈ s → a = b := by
   rw [encard_le_one_iff_eq, or_iff_not_imp_left, ← Ne, ← nonempty_iff_ne_empty]
-  refine' ⟨fun h a b has hbs ↦ _,
+  refine ⟨fun h a b has hbs ↦ ?_,
     fun h ⟨x, hx⟩ ↦ ⟨x, ((singleton_subset_iff.2 hx).antisymm' (fun y hy ↦ h _ _ hy hx))⟩⟩
   obtain ⟨x, rfl⟩ := h ⟨_, has⟩
   rw [(has : a = x), (hbs : b = x)]
@@ -318,7 +318,7 @@ theorem encard_eq_two : s.encard = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} := by
   rw [← insert_eq_of_mem hx, ← insert_diff_singleton, encard_insert_of_not_mem (fun h ↦ h.2 rfl),
     ← one_add_one_eq_two, WithTop.add_right_cancel_iff (WithTop.one_ne_top), encard_eq_one] at h
   obtain ⟨y, h⟩ := h
-  refine' ⟨x, y, by rintro rfl; exact (h.symm.subset rfl).2 rfl, _⟩
+  refine ⟨x, y, by rintro rfl; exact (h.symm.subset rfl).2 rfl, ?_⟩
   rw [← h, insert_diff_singleton, insert_eq_of_mem hx]
 
 theorem encard_eq_three {α : Type u_1} {s : Set α} :
@@ -436,7 +436,9 @@ theorem Finite.exists_injOn_of_encard_le [Nonempty β] {s : Set α} {t : Set β}
     mem_image, ite_eq_left_iff, not_exists, not_and, not_forall, exists_prop, and_iff_right hbt]
 
   refine ⟨?_, ?_, fun x hxs hxa ↦ ⟨hxa, (hf₀s x hxs hxa).2⟩⟩
-  · rintro x hx; split_ifs with h; assumption; exact (hf₀s x hx h).1
+  · rintro x hx; split_ifs with h
+    · assumption
+    · exact (hf₀s x hx h).1
   exact InjOn.congr hinj (fun x ⟨_, hxa⟩ ↦ by rwa [Function.update_noteq])
 termination_by encard s
 
@@ -948,7 +950,7 @@ theorem exists_intermediate_Set (i : ℕ) (h₁ : i + s.ncard ≤ t.ncard) (h₂
   rw [ht.ncard] at h₁
   have h₁' := Nat.eq_zero_of_le_zero h₁
   rw [add_eq_zero_iff] at h₁'
-  refine' ⟨t, h₂, rfl.subset, _⟩
+  refine ⟨t, h₂, rfl.subset, ?_⟩
   rw [h₁'.2, h₁'.1, ht.ncard, add_zero]
 #align set.exists_intermediate_set Set.exists_intermediate_Set
 
@@ -1001,7 +1003,7 @@ theorem exists_subset_or_subset_of_two_mul_lt_ncard {n : ℕ} (hst : 2 * n < (s 
   refine' ⟨fun h ↦ _, by rintro ⟨a, rfl⟩; rw [ncard_singleton]⟩
   have hft := (finite_of_ncard_ne_zero (ne_zero_of_eq_one h)).fintype
   simp_rw [ncard_eq_toFinset_card', @Finset.card_eq_one _ (toFinset s)] at h
-  refine' h.imp fun a ha ↦ _
+  refine h.imp fun a ha ↦ ?_
   simp_rw [Set.ext_iff, mem_singleton_iff]
   simp only [Finset.ext_iff, mem_toFinset, Finset.mem_singleton] at ha
   exact ha
@@ -1120,10 +1122,4 @@ theorem ncard_eq_three : s.ncard = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y �
 
 end ncard
 
-/-!
-### Deprecated lemmas
-
-Those lemmas have been deprecated on 2023-12-27.
--/
-
-@[deprecated] alias ncard_le_of_subset := ncard_le_ncard
+@[deprecated] alias ncard_le_of_subset := ncard_le_ncard -- 2023-12-27

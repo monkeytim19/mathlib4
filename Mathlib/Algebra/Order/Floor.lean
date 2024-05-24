@@ -4,16 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import Mathlib.Algebra.CharZero.Lemmas
-import Mathlib.Algebra.Ring.Int
+import Mathlib.Algebra.Order.Interval.Set.Group
+import Mathlib.Algebra.Group.Int
 import Mathlib.Data.Int.Lemmas
 import Mathlib.Data.Int.CharZero
-import Mathlib.Data.Set.Intervals.Group
+import Mathlib.Data.Set.Subsingleton
 import Mathlib.Init.Data.Nat.Lemmas
+import Mathlib.Order.GaloisConnection
 import Mathlib.Tactic.Abel
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Positivity
-import Mathlib.Data.Set.Subsingleton
-import Mathlib.Order.GaloisConnection
 
 #align_import algebra.order.floor from "leanprover-community/mathlib"@"afdb43429311b885a7988ea15d0bac2aac80f69c"
 
@@ -566,7 +566,7 @@ end Nat
 /-- There exists at most one `FloorSemiring` structure on a linear ordered semiring. -/
 theorem subsingleton_floorSemiring {α} [LinearOrderedSemiring α] :
     Subsingleton (FloorSemiring α) := by
-  refine' ⟨fun H₁ H₂ => _⟩
+  refine ⟨fun H₁ H₂ => ?_⟩
   have : H₁.ceil = H₂.ceil := funext fun a => (H₁.gc_ceil.l_unique H₂.gc_ceil) fun n => rfl
   have : H₁.floor = H₂.floor := by
     ext a
@@ -1077,7 +1077,7 @@ theorem fract_mul_nat (a : α) (b : ℕ) : ∃ z : ℤ, fract a * b - fract (a *
   induction' b with c hc
   · use 0; simp
   · rcases hc with ⟨z, hz⟩
-    rw [Nat.succ_eq_add_one, Nat.cast_add, mul_add, mul_add, Nat.cast_one, mul_one, mul_one]
+    rw [Nat.cast_add, mul_add, mul_add, Nat.cast_one, mul_one, mul_one]
     rcases fract_add (a * c) a with ⟨y, hy⟩
     use z - y
     rw [Int.cast_sub, ← hz, ← hy]
@@ -1741,7 +1741,7 @@ end FloorRingToSemiring
 
 /-- There exists at most one `FloorRing` structure on a given linear ordered ring. -/
 theorem subsingleton_floorRing {α} [LinearOrderedRing α] : Subsingleton (FloorRing α) := by
-  refine' ⟨fun H₁ H₂ => _⟩
+  refine ⟨fun H₁ H₂ => ?_⟩
   have : H₁.floor = H₂.floor :=
     funext fun a => (H₁.gc_coe_floor.u_unique H₂.gc_coe_floor) fun _ => rfl
   have : H₁.ceil = H₂.ceil := funext fun a => (H₁.gc_ceil_coe.l_unique H₂.gc_ceil_coe) fun _ => rfl

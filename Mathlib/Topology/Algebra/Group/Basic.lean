@@ -197,6 +197,26 @@ section ContinuousInv
 variable [TopologicalSpace G] [Inv G] [ContinuousInv G]
 
 @[to_additive]
+protected theorem Specializes.inv {x y : G} (h : x ⤳ y) : (x⁻¹) ⤳ (y⁻¹) :=
+  h.map continuous_inv
+
+@[to_additive]
+protected theorem Inseparable.inv {x y : G} (h : Inseparable x y) : Inseparable (x⁻¹) (y⁻¹) :=
+  h.map continuous_inv
+
+@[to_additive]
+protected theorem Specializes.zpow {G : Type*} [DivInvMonoid G] [TopologicalSpace G]
+    [ContinuousMul G] [ContinuousInv G] {x y : G} (h : x ⤳ y) : ∀ m : ℤ, (x ^ m) ⤳ (y ^ m)
+  | .ofNat n => by simpa using h.pow n
+  | .negSucc n => by simpa using (h.pow (n + 1)).inv
+
+@[to_additive]
+protected theorem Inseparable.zpow {G : Type*} [DivInvMonoid G] [TopologicalSpace G]
+    [ContinuousMul G] [ContinuousInv G] {x y : G} (h : Inseparable x y) (m : ℤ) :
+    Inseparable (x ^ m) (y ^ m) :=
+  (h.specializes.zpow m).antisymm (h.specializes'.zpow m)
+
+@[to_additive]
 instance : ContinuousInv (ULift G) :=
   ⟨continuous_uLift_up.comp (continuous_inv.comp continuous_uLift_down)⟩
 
@@ -1176,7 +1196,7 @@ theorem ContinuousOn.div' (hf : ContinuousOn f s) (hg : ContinuousOn g s) :
 
 end ContinuousDiv
 
-section DivInTopologicalGroup
+section DivInvTopologicalGroup
 
 variable [Group G] [TopologicalSpace G] [TopologicalGroup G]
 
@@ -1236,7 +1256,7 @@ theorem nhds_translation_div (x : G) : comap (· / x) (𝓝 1) = 𝓝 x := by
 #align nhds_translation_div nhds_translation_div
 #align nhds_translation_sub nhds_translation_sub
 
-end DivInTopologicalGroup
+end DivInvTopologicalGroup
 
 /-!
 ### Topological operations on pointwise sums and products
@@ -1799,7 +1819,7 @@ theorem exists_disjoint_smul_of_isCompact [NoncompactSpace G] {K L : Set G} (hK 
   obtain ⟨g, hg⟩ : ∃ g, g ∉ K * L⁻¹ := by
     contrapose! A
     exact eq_univ_iff_forall.2 A
-  refine' ⟨g, _⟩
+  refine ⟨g, ?_⟩
   refine disjoint_left.2 fun a ha h'a => hg ?_
   rcases h'a with ⟨b, bL, rfl⟩
   refine' ⟨g * b, ha, b⁻¹, by simpa only [Set.mem_inv, inv_inv] using bL, _⟩

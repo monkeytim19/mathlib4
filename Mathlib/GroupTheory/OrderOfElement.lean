@@ -8,7 +8,7 @@ import Mathlib.Algebra.GroupPower.Ring
 import Mathlib.Data.Int.ModEq
 import Mathlib.Data.Nat.Interval
 import Mathlib.Data.Set.Pointwise.Basic
-import Mathlib.Data.Set.Intervals.Infinite
+import Mathlib.Order.Interval.Set.Infinite
 import Mathlib.Dynamics.PeriodicPts
 import Mathlib.GroupTheory.Index
 
@@ -299,7 +299,8 @@ protected lemma IsOfFinOrder.mem_powers_iff_mem_range_orderOf [DecidableEq G]
 protected lemma IsOfFinOrder.powers_eq_image_range_orderOf [DecidableEq G] (hx : IsOfFinOrder x) :
     (Submonoid.powers x : Set G) = (Finset.range (orderOf x)).image (x ^ ·) :=
   Set.ext fun _ ↦ hx.mem_powers_iff_mem_range_orderOf
-/- 2024-02-21 -/ @[deprecated] alias IsOfFinAddOrder.powers_eq_image_range_orderOf :=
+@[deprecated] -- 2024-02-21
+alias IsOfFinAddOrder.powers_eq_image_range_orderOf :=
   IsOfFinAddOrder.multiples_eq_image_range_addOrderOf
 
 @[to_additive]
@@ -882,7 +883,7 @@ theorem mem_powers_iff_mem_range_orderOf [DecidableEq G] :
   mapping `i • a` to `i • b`."]
 noncomputable def powersEquivPowers (h : orderOf x = orderOf y) : powers x ≃ powers y :=
   (finEquivPowers x <| isOfFinOrder_of_finite _).symm.trans <|
-    (Fin.castIso h).toEquiv.trans <| finEquivPowers y <| isOfFinOrder_of_finite _
+    (finCongr h).trans <| finEquivPowers y <| isOfFinOrder_of_finite _
 #align powers_equiv_powers powersEquivPowers
 #align multiples_equiv_multiples multiplesEquivMultiples
 
@@ -974,7 +975,7 @@ theorem injective_zpow_iff_not_isOfFinOrder : (Injective fun n : ℤ => x ^ n) �
   mapping `i • a` to `i • b`."]
 noncomputable def zpowersEquivZPowers (h : orderOf x = orderOf y) :
     (Subgroup.zpowers x : Set G) ≃ (Subgroup.zpowers y : Set G) :=
-  (finEquivZPowers x <| isOfFinOrder_of_finite _).symm.trans <| (Fin.castIso h).toEquiv.trans <|
+  (finEquivZPowers x <| isOfFinOrder_of_finite _).symm.trans <| (finCongr h).trans <|
     finEquivZPowers y <| isOfFinOrder_of_finite _
 #align zpowers_equiv_zpowers zpowersEquivZPowers
 #align zmultiples_equiv_zmultiples zmultiplesEquivZMultiples
@@ -1103,8 +1104,7 @@ lemma zpow_mod_natCard (a : G) (n : ℤ) : a ^ (n % Nat.card G : ℤ) = a ^ n :=
 
 /-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
 @[to_additive (attr := simps) "If `gcd(|G|,n)=1` then the smul by `n` is a bijection"]
-noncomputable def powCoprime {G : Type*} [Group G] (h : (Nat.card G).Coprime n) : G ≃ G
-    where
+noncomputable def powCoprime {G : Type*} [Group G] (h : (Nat.card G).Coprime n) : G ≃ G where
   toFun g := g ^ n
   invFun g := g ^ (Nat.card G).gcdB n
   left_inv g := by
@@ -1261,23 +1261,21 @@ protected theorem Prod.orderOf (x : α × β) : orderOf x = (orderOf x.1).lcm (o
   minimalPeriod_prod_map _ _ _
 #align prod.order_of Prod.orderOf
 #align prod.add_order_of Prod.addOrderOf
-/- 2024-02-21 -/ @[deprecated] alias Prod.add_orderOf := Prod.addOrderOf
+@[deprecated] alias Prod.add_orderOf := Prod.addOrderOf -- 2024-02-21
 
 @[to_additive]
 theorem orderOf_fst_dvd_orderOf : orderOf x.1 ∣ orderOf x :=
   minimalPeriod_fst_dvd
 #align order_of_fst_dvd_order_of orderOf_fst_dvd_orderOf
 #align add_order_of_fst_dvd_add_order_of addOrderOf_fst_dvd_addOrderOf
-/- 2024-02-21 -/ @[deprecated] alias add_orderOf_fst_dvd_add_orderOf :=
-  addOrderOf_fst_dvd_addOrderOf
+@[deprecated] alias add_orderOf_fst_dvd_add_orderOf := addOrderOf_fst_dvd_addOrderOf -- 2024-02-21
 
 @[to_additive]
 theorem orderOf_snd_dvd_orderOf : orderOf x.2 ∣ orderOf x :=
   minimalPeriod_snd_dvd
 #align order_of_snd_dvd_order_of orderOf_snd_dvd_orderOf
 #align add_order_of_snd_dvd_add_order_of addOrderOf_snd_dvd_addOrderOf
-/- 2024-02-21 -/ @[deprecated] alias add_orderOf_snd_dvd_add_orderOf :=
-  addOrderOf_snd_dvd_addOrderOf
+@[deprecated] alias add_orderOf_snd_dvd_add_orderOf := addOrderOf_snd_dvd_addOrderOf -- 2024-02-21
 
 @[to_additive]
 theorem IsOfFinOrder.fst {x : α × β} (hx : IsOfFinOrder x) : IsOfFinOrder x.1 :=
