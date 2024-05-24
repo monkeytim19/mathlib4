@@ -3,60 +3,11 @@ Copyright (c) 2024 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import Mathlib.CFCNonUnital.QuasispectrumRestricts
+import Mathlib.Analysis.NormedSpace.Spectrum
 import Mathlib.CFCNonUnital.ContinuousMapZeroMaterial
 import Mathlib.Topology.Algebra.Algebra
 import Mathlib.Topology.ContinuousFunction.Compact
 import Mathlib.Topology.ContinuousFunction.NonUnitalFunctionalCalculus
-
-namespace NonUnitalAlgHom -- PR #12657 https://github.com/leanprover-community/mathlib4/pull/12657
-
-variable (R : Type*) {S A B : Type*} [Monoid R] [Monoid S]
-    [NonUnitalNonAssocSemiring A] [NonUnitalNonAssocSemiring B] [MulAction R S]
-    [DistribMulAction S A] [DistribMulAction S B] [DistribMulAction R A] [DistribMulAction R B]
-    [IsScalarTower R S A] [IsScalarTower R S B]
-
-def restrictScalars (f : A →ₙₐ[S] B) : A →ₙₐ[R] B :=
-  { (f : A →ₙ+* B) with
-    map_smul' := fun r x ↦ by have := map_smul f (r • 1) x; simpa }
-
-@[simp]
-lemma restrictScalars_apply (f : A →ₙₐ[S] B) (x : A) : f.restrictScalars R x = f x := rfl
-
-lemma coe_restrictScalars (f : A →ₙₐ[S] B) : (f.restrictScalars R : A →ₙ+* B) = f := rfl
-
-lemma coe_restrictScalars' (f : A →ₙₐ[S] B) : (f.restrictScalars R : A → B) = f := rfl
-
-theorem restrictScalars_injective :
-    Function.Injective (restrictScalars R : (A →ₙₐ[S] B) → A →ₙₐ[R] B) :=
-  fun _ _ h ↦ ext (congr_fun h : _)
-
-end NonUnitalAlgHom
-
-namespace NonUnitalStarAlgHom -- PR https://github.com/leanprover-community/mathlib4/pull/12657
-
-variable (R : Type*) {S A B : Type*} [Monoid R] [Monoid S] [Star A] [Star B]
-    [NonUnitalNonAssocSemiring A] [NonUnitalNonAssocSemiring B] [MulAction R S]
-    [DistribMulAction S A] [DistribMulAction S B] [DistribMulAction R A] [DistribMulAction R B]
-    [IsScalarTower R S A] [IsScalarTower R S B]
-
-def restrictScalars (f : A →⋆ₙₐ[S] B) : A →⋆ₙₐ[R] B :=
-  { (f : A →ₙₐ[S] B).restrictScalars R with
-    map_star' := map_star f }
-
-@[simp]
-lemma restrictScalars_apply (f : A →⋆ₙₐ[S] B) (x : A) : f.restrictScalars R x = f x := rfl
-
-lemma coe_restrictScalars (f : A →⋆ₙₐ[S] B) : (f.restrictScalars R : A →ₙ+* B) = f := rfl
-
-lemma coe_restrictScalars' (f : A →⋆ₙₐ[S] B) : (f.restrictScalars R : A → B) = f := rfl
-
-theorem restrictScalars_injective :
-    Function.Injective (restrictScalars R : (A →⋆ₙₐ[S] B) → A →⋆ₙₐ[R] B) :=
-  fun _ _ h ↦ ext (DFunLike.congr_fun h : _)
-
-end NonUnitalStarAlgHom
-
 namespace ContinuousMapZero
 
 variable {X Y M R S : Type*} [Zero X] [Zero Y] [CommSemiring M]
@@ -110,15 +61,6 @@ def homeomorph {R S A : Type*} [Semifield R] [Field S] [Ring A]
   continuous_invFun := continuous_induced_rng.mpr <| sorry
     -- will be:
     -- continuous_algebraMap R S |>.comp continuous_induced_dom
-
--- PR #12643 https://github.com/leanprover-community/mathlib4/pull/12643
-lemma compactSpace {R S A : Type*} [Semifield R] [Field S] [NonUnitalRing A]
-    [Algebra R S] [Module R A] [Module S A] [IsScalarTower S A A] [SMulCommClass S A A]
-    [IsScalarTower R S A] [TopologicalSpace R] [TopologicalSpace S] {a : A} (f : C(S, R))
-    (h : QuasispectrumRestricts a f) [h_cpct : CompactSpace (σₙ S a)] :
-    CompactSpace (σₙ R a) := by
-  rw [← isCompact_iff_compactSpace] at h_cpct ⊢
-  exact h.image ▸ h_cpct.image (map_continuous f)
 
 universe u v w
 

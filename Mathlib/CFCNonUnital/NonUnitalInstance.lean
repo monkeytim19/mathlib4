@@ -5,60 +5,6 @@ import Mathlib.CFCNonUnital.Restrict
 import Mathlib.CFCNonUnital.UnitizationL1Norm
 import Mathlib.Topology.ContinuousFunction.NonUnitalFunctionalCalculus
 
-section MissingTopology -- PR: #12639 https://github.com/leanprover-community/mathlib4/pull/12639
-
-variable {X Y Z : Type*} [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
-variable {f : X → Y} {g : Y → Z}
-
-theorem Inducing.of_comp_iff (hg : Inducing g) : Inducing (g ∘ f) ↔ Inducing f := by
-  refine ⟨fun h ↦ ?_, hg.comp⟩
-  rw [inducing_iff, hg.induced, induced_compose, h.induced]
-
-theorem Embedding.of_comp_iff (hg : Embedding g) : Embedding (g ∘ f) ↔ Embedding f := by
-  simp_rw [embedding_iff, hg.toInducing.of_comp_iff, hg.inj.of_comp_iff f]
-
-theorem ClosedEmbedding.of_comp_iff (hg : ClosedEmbedding g) :
-    ClosedEmbedding (g ∘ f) ↔ ClosedEmbedding f := by
-  simp_rw [closedEmbedding_iff, hg.toEmbedding.of_comp_iff, Set.range_comp,
-    ← hg.closed_iff_image_closed]
-
-end MissingTopology
-
-section MissingUniformity -- PR: #12639 https://github.com/leanprover-community/mathlib4/pull/12639
-
-
-variable {α β γ : Type*} [UniformSpace α] [UniformSpace β] [UniformSpace γ] {g : β → γ} {f : α → β}
-
-theorem UniformInducing.of_comp_iff (hg : UniformInducing g) :
-    UniformInducing (g ∘ f) ↔ UniformInducing f := by
-  refine ⟨fun h ↦ ?_, hg.comp⟩
-  rw [uniformInducing_iff, ← hg.comap_uniformity, Filter.comap_comap, ← h.comap_uniformity,
-    Function.comp, Function.comp]
-
-theorem UniformEmbedding.of_comp_iff (hg : UniformEmbedding g) :
-    UniformEmbedding (g ∘ f) ↔ UniformEmbedding f := by
-  simp_rw [uniformEmbedding_iff, hg.toUniformInducing.of_comp_iff, hg.inj.of_comp_iff f]
-
-end MissingUniformity
-
-section IsStarNormal -- PR: #12641 https://github.com/leanprover-community/mathlib4/pull/12641
-
-lemma isStarNormal_iff {R : Type*} [Mul R] [Star R] {x : R} :
-    IsStarNormal x ↔ star x * x = x * star x :=
-  ⟨fun ⟨h⟩ ↦ h.eq, (⟨·⟩)⟩
-
-lemma Unitization.isStarNormal_inr {R A : Type*} [Semiring R] [AddCommMonoid A]
-    [Mul A] [SMulWithZero R A] [StarAddMonoid R] [Star A] {a : A} :
-    IsStarNormal (a : Unitization R A) ↔ IsStarNormal a := by
-  simp only [isStarNormal_iff, ← inr_star, ← inr_mul, inr_injective.eq_iff]
-
-lemma Unitization.instIsStarNormal (R : Type*) {A : Type*} [Semiring R] [AddCommMonoid A]
-    [Mul A] [SMulWithZero R A] [StarAddMonoid R] [Star A] (a : A) [IsStarNormal a] :
-    IsStarNormal (a : Unitization R A) :=
-  Unitization.isStarNormal_inr.mpr ‹_›
-
-end IsStarNormal
-
 section QuasispectrumCompact
 
 variable {𝕜 A : Type*} [NormedField 𝕜] [NonUnitalNormedRing A] [NormedSpace 𝕜 A] [CompleteSpace A]
@@ -277,28 +223,6 @@ instance IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus
 
 end SelfAdjoint
 
-namespace QuasispectrumRestricts
--- PR #12643 https://github.com/leanprover-community/mathlib4/pull/12643
-
-variable {A : Type*} [NonUnitalRing A]
-
-lemma nnreal_iff [Module ℝ A] [IsScalarTower ℝ A A] [SMulCommClass ℝ A A] {a : A} :
-    QuasispectrumRestricts a ContinuousMap.realToNNReal ↔ ∀ x ∈ σₙ ℝ a, 0 ≤ x := by
-  simp_rw [QuasispectrumRestricts.quasispectrumRestricts_iff_spectrumRestricts_inr,
-    Unitization.quasispectrum_eq_spectrum_inr' _ ℝ, SpectrumRestricts.nnreal_iff]
-
-lemma nnreal_of_nonneg [Module ℝ A] [IsScalarTower ℝ A A] [SMulCommClass ℝ A A] [PartialOrder A]
-    [NonnegSpectrumClass ℝ A] {a : A} (ha : 0 ≤ a) :
-    QuasispectrumRestricts a ContinuousMap.realToNNReal :=
-  nnreal_iff.mpr <| quasispectrum_nonneg_of_nonneg _ ha
-
-lemma real_iff [Module ℂ A] [IsScalarTower ℂ A A] [SMulCommClass ℂ A A] {a : A} :
-    QuasispectrumRestricts a Complex.reCLM ↔ ∀ x ∈ σₙ ℂ a, x = x.re := by
-  simp_rw [QuasispectrumRestricts.quasispectrumRestricts_iff_spectrumRestricts_inr,
-    Unitization.quasispectrum_eq_spectrum_inr' _ ℂ, SpectrumRestricts.real_iff]
-
-end QuasispectrumRestricts
-
 section Nonneg
 
 -- if we have the unital-to-non-unital instance, we can remove the unital version
@@ -309,8 +233,7 @@ lemma CFC.exists_sqrt_of_isSelfAdjoint_of_quasispectrumRestricts {A : Type*} [No
     ∃ x : A, IsSelfAdjoint x ∧ QuasispectrumRestricts x ContinuousMap.realToNNReal ∧ x * x = a := by
   use cfcₙ Real.sqrt a, cfcₙ_predicate Real.sqrt a
   constructor
-  -- that's misnamed, it should be `cfcₙ_map_quasispectrum`
-  · simpa only [QuasispectrumRestricts.nnreal_iff, cfc_map_quasispectrum Real.sqrt a,
+  · simpa only [QuasispectrumRestricts.nnreal_iff, cfcₙ_map_quasispectrum Real.sqrt a,
       Set.mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
         using fun x _ ↦ Real.sqrt_nonneg x
   · rw [← cfcₙ_mul ..]
