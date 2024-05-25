@@ -30,10 +30,10 @@ def nonUnitalStarAlgHom_precomp (f : C(X, Y)₀) : C(Y, R)₀ →⋆ₙₐ[R] C(
 lemma smul_apply (m : M) (f : C(X, R)₀) (x : X) : (m • f) x = m • f x := rfl
 
 variable (X) in
-@[simps]
+@[simps apply]
 def nonUnitalStarAlgHom_postcomp (φ : R →⋆ₙₐ[M] S) (hφ : Continuous φ) :
     C(X, R)₀ →⋆ₙₐ[M] C(X, S)₀ where
-  toFun f := ⟨⟨φ ∘ f, hφ.comp (map_continuous f)⟩, by simp⟩
+  toFun := .comp ⟨⟨φ, hφ⟩, by simp⟩
   map_zero' := ext <| by simp
   map_add' _ _ := ext <| by simp
   map_mul' _ _ := ext <| by simp
@@ -48,19 +48,18 @@ local notation "σₙ" => quasispectrum
 open ContinuousMapZero Set
 
 /-- The homeomorphism `spectrum S a ≃ₜ spectrum R a` induced by `SpectrumRestricts a f`. -/
-def homeomorph {R S A : Type*} [Semifield R] [Field S] [Ring A]
-    [Algebra R S] [Algebra R A] [Algebra S A] [IsScalarTower R S A] [TopologicalSpace R]
-    [TopologicalSpace S] [ContinuousSMul R S] {a : A} {f : C(S, R)}
-    (h : QuasispectrumRestricts a f) :
+def homeomorph {R S A : Type*} [Semifield R] [Field S] [NonUnitalRing A]
+    [Algebra R S] [Module R A] [Module S A] [IsScalarTower R S A] [TopologicalSpace R]
+    [TopologicalSpace S] [ContinuousSMul R S] [IsScalarTower S A A] [SMulCommClass S A A]
+    {a : A} {f : C(S, R)} (h : QuasispectrumRestricts a f) :
     σₙ S a ≃ₜ σₙ R a where
   toFun := MapsTo.restrict f _ _ h.subset_preimage
   invFun := MapsTo.restrict (algebraMap R S) _ _ (image_subset_iff.mp h.algebraMap_image.subset)
   left_inv x := Subtype.ext <| h.rightInvOn x.2
   right_inv x := Subtype.ext <| h.left_inv x
   continuous_toFun := continuous_induced_rng.mpr <| f.continuous.comp continuous_induced_dom
-  continuous_invFun := continuous_induced_rng.mpr <| sorry
-    -- will be:
-    -- continuous_algebraMap R S |>.comp continuous_induced_dom
+  continuous_invFun := continuous_induced_rng.mpr <|
+    continuous_algebraMap R S |>.comp continuous_induced_dom
 
 universe u v w
 
@@ -91,13 +90,15 @@ variable [CompleteSpace R]
 
 lemma closedEmbedding_nonUnitalStarAlgHom {a : A} {φ : C(σₙ S a, S)₀ →⋆ₙₐ[S] A}
     (hφ : ClosedEmbedding φ) {f : C(S, R)} (h : QuasispectrumRestricts a f)
-    (h_isom : Isometry (algebraMap R S)) [h_cpct : CompactSpace (σₙ S a)] :
+    (halg : UniformEmbedding (algebraMap R S)) [h_cpct : CompactSpace (σₙ S a)] :
     ClosedEmbedding (h.nonUnitalStarAlgHom φ) := by
-  apply hφ.comp
-  simp only [MulHom.coe_coe, NonUnitalStarAlgHom.coe_toNonUnitalAlgHom,
-    NonUnitalStarAlgHom.comp_apply, nonUnitalStarAlgHom_precomp_apply]
   have := h.compactSpace
-  sorry
+  have : CompleteSpace C(σₙ R a, R)₀ := sorry -- PR#12992
+  have : T0Space C(σₙ S a, S)₀ := sorry -- PR#12992
+  have : h.homeomorph.symm 0 = 0 := Subtype.ext (map_zero <| algebraMap _ _)
+  refine hφ.comp <| UniformEmbedding.toClosedEmbedding <| .comp
+    (ContinuousMapZero.uniformEmbedding_comp _ halg)
+    (UniformEquiv.arrowCongrLeft₀ h.homeomorph.symm this |>.uniformEmbedding)
 
 lemma nonUnitalStarAlgHom_id {a : A} {φ : C(σₙ S a, S)₀ →⋆ₙₐ[S] A} {f : C(S, R)}
     (h : QuasispectrumRestricts a f) (h_id : φ (.id rfl) = a) :
@@ -113,7 +114,7 @@ variable [IsScalarTower R A A] [SMulCommClass R A A]
 characterized by: `q a` and the spectrum of `a` restricts to the scalar subring `R` via
 `f : C(S, R)`, then we can get a restricted functional calculus
 `ContinuousFunctionalCalculus R p`. -/
-protected theorem cfc (f : C(S, R)) (h_isom : Isometry (algebraMap R S))
+protected theorem cfc (f : C(S, R)) (halg : UniformEmbedding (algebraMap R S))
     (h : ∀ a, p a ↔ q a ∧ QuasispectrumRestricts a f) (h_cpct : ∀ a, q a → CompactSpace (σₙ S a)) :
     NonUnitalContinuousFunctionalCalculus R p where
   exists_cfc_of_predicate a ha := by
@@ -121,7 +122,7 @@ protected theorem cfc (f : C(S, R)) (h_isom : Isometry (algebraMap R S))
       ?hom_closedEmbedding, ?hom_id, ?hom_map_spectrum, ?predicate_hom⟩
     case hom_closedEmbedding =>
       exact ((h a).mp ha).2.closedEmbedding_nonUnitalStarAlgHom (cfcₙHom_closedEmbedding ((h a).mp ha).1)
-        h_isom (h_cpct := h_cpct a ((h a).mp ha).1)
+        halg (h_cpct := h_cpct a ((h a).mp ha).1)
     case hom_id => exact ((h a).mp ha).2.nonUnitalStarAlgHom_id <| cfcₙHom_id ((h a).mp ha).1
     case hom_map_spectrum =>
       intro g
@@ -131,7 +132,7 @@ protected theorem cfc (f : C(S, R)) (h_isom : Isometry (algebraMap R S))
       constructor
       · rintro ⟨y, hy⟩
         have := congr_arg f hy
-        simp only [nonUnitalStarAlgHom_postcomp_apply_toFun, NonUnitalStarAlgHom.coe_coe,
+        simp only [nonUnitalStarAlgHom_postcomp_apply, NonUnitalStarAlgHom.coe_coe,
           Function.comp_apply, comp_apply, coe_mk, ContinuousMap.coe_mk, StarAlgHom.ofId_apply]
           at this
         rw [((h a).mp ha).2.left_inv _, ((h a).mp ha).2.left_inv _] at this
@@ -139,7 +140,7 @@ protected theorem cfc (f : C(S, R)) (h_isom : Isometry (algebraMap R S))
       · rintro ⟨y, rfl⟩
         rw [Set.mem_preimage]
         refine' ⟨⟨algebraMap R S y, quasispectrum.algebraMap_mem S y.prop⟩, _⟩
-        simp only [nonUnitalStarAlgHom_postcomp_apply_toFun, NonUnitalStarAlgHom.coe_coe,
+        simp only [nonUnitalStarAlgHom_postcomp_apply, NonUnitalStarAlgHom.coe_coe,
           Function.comp_apply, comp_apply, coe_mk, ContinuousMap.coe_mk, StarAlgHom.ofId_apply]
         congr
         exact Subtype.ext (((h a).mp ha).2.left_inv y)
@@ -156,19 +157,19 @@ protected theorem cfc (f : C(S, R)) (h_isom : Isometry (algebraMap R S))
 variable [NonUnitalContinuousFunctionalCalculus R p]
 variable [UniqueNonUnitalContinuousFunctionalCalculus R A]
 
-lemma cfcₙHom_eq_restrict (f : C(S, R)) (h_isom : Isometry (algebraMap R S)) {a : A} (hpa : p a)
+lemma cfcₙHom_eq_restrict (f : C(S, R)) (halg : UniformEmbedding (algebraMap R S)) {a : A} (hpa : p a)
     (hqa : q a) (h : QuasispectrumRestricts a f) [CompactSpace (σₙ S a)] :
     cfcₙHom hpa = h.nonUnitalStarAlgHom (cfcₙHom hqa) := by
   apply cfcₙHom_eq_of_continuous_of_map_id
-  · exact h.closedEmbedding_nonUnitalStarAlgHom (cfcₙHom_closedEmbedding hqa) h_isom |>.continuous
+  · exact h.closedEmbedding_nonUnitalStarAlgHom (cfcₙHom_closedEmbedding hqa) halg |>.continuous
   · exact h.nonUnitalStarAlgHom_id (cfcₙHom_id hqa)
 
-lemma cfc_eq_restrict (f : C(S, R)) (h_isom : Isometry (algebraMap R S)) {a : A} (hpa : p a)
+lemma cfc_eq_restrict (f : C(S, R)) (halg : UniformEmbedding (algebraMap R S)) {a : A} (hpa : p a)
     (hqa : q a) (h : QuasispectrumRestricts a f) [CompactSpace (σₙ S a)] (g : R → R) :
     cfcₙ g a = cfcₙ (fun x ↦ algebraMap R S (g (f x))) a := by
   by_cases hg : ContinuousOn g (σₙ R a) ∧ g 0 = 0
   · obtain ⟨hg, hg0⟩ := hg
-    rw [cfcₙ_apply g a, cfcₙHom_eq_restrict f h_isom hpa hqa h, nonUnitalStarAlgHom_apply,
+    rw [cfcₙ_apply g a, cfcₙHom_eq_restrict f halg hpa hqa h, nonUnitalStarAlgHom_apply,
       cfcₙHom_eq_cfcₙ_extend 0]
     apply cfcₙ_congr fun x hx ↦ ?_
     lift x to σₙ S a using hx
@@ -177,9 +178,10 @@ lemma cfc_eq_restrict (f : C(S, R)) (h_isom : Isometry (algebraMap R S)) {a : A}
     obtain (hg | hg) := hg
     · have : ¬ ContinuousOn (fun x ↦ algebraMap R S (g (f x)) : S → S) (σₙ S a) := by
         refine fun hg' ↦ hg ?_
-        rw [h_isom.embedding.continuousOn_iff]
-        simpa [h_isom.embedding.continuousOn_iff, Function.comp, h.left_inv _] using
-          hg'.comp h_isom.continuous.continuousOn (fun _ : R ↦ quasispectrum.algebraMap_mem S)
+        rw [halg.embedding.continuousOn_iff]
+        simpa [halg.embedding.continuousOn_iff, Function.comp, h.left_inv _] using
+          hg'.comp halg.embedding.continuous.continuousOn
+          (fun _ : R ↦ quasispectrum.algebraMap_mem S)
       rw [cfcₙ_apply_of_not_continuousOn a hg, cfcₙ_apply_of_not_continuousOn a this]
     · rw [cfcₙ_apply_of_not_map_zero a hg, cfcₙ_apply_of_not_map_zero a (by simpa [h.map_zero])]
 

@@ -1,7 +1,6 @@
 import Mathlib.Algebra.Algebra.Unitization
 import Mathlib.Topology.ContinuousFunction.ContinuousMapZero
 import Mathlib.Topology.Algebra.Algebra
-import Mathlib.Topology.IsLocalHomeomorph -- because of badly placed toHomeomeomorph_of_surjective
 
 open Set Topology TopologicalSpace Function Uniformity
 
@@ -100,7 +99,10 @@ variable [UniformSpace R] [Zero R]
 
 protected instance instUniformSpace : UniformSpace C(X, R)₀ := .comap toContinuousMap inferInstance
 
-
+-- PR#12992
+lemma uniformEmbedding_toContinuousMap : UniformEmbedding (toContinuousMap (X := X) (R := R)) where
+  comap_uniformity := rfl
+  inj := sorry
 
 -- TODO: clean a bit
 lemma uniformInducing_precomp_toContinuousMap_of_almost_surj [T1Space X] [TopologicalSpace Y]
@@ -117,6 +119,25 @@ lemma uniformInducing_precomp_toContinuousMap_of_almost_surj [T1Space X] [Topolo
     convert Filter.comap_const_of_mem this with ⟨f, g⟩ <;>
     ext ⟨x, rfl⟩ <;>
     [exact map_zero f; exact map_zero g]
+
+lemma uniformEmbedding_comp [UniformSpace Y] [Zero Y] (g : C(Y, R)₀) (hg : UniformEmbedding g) :
+    UniformEmbedding (g.comp · : C(X, Y)₀ → C(X, R)₀) :=
+  uniformEmbedding_toContinuousMap.of_comp_iff.mp <|
+    ContinuousMap.uniformEmbedding_comp g.toContinuousMap hg |>.comp
+      uniformEmbedding_toContinuousMap
+
+def _root_.UniformEquiv.arrowCongrLeft₀ [TopologicalSpace Y] [Zero Y] (f : X ≃ₜ Y) (hf : f 0 = 0) :
+    C(X, R)₀ ≃ᵤ C(Y, R)₀ where
+  toFun g := g.comp ⟨f.symm.toContinuousMap, (f.toEquiv.apply_eq_iff_eq_symm_apply.eq ▸ hf).symm⟩
+  invFun g := g.comp ⟨f.toContinuousMap, hf⟩
+  left_inv g := ext fun _ ↦ congrArg g <| f.left_inv _
+  right_inv g := ext fun _ ↦ congrArg g <| f.right_inv _
+  uniformContinuous_toFun := uniformEmbedding_toContinuousMap.uniformContinuous_iff.mpr <|
+    ContinuousMap.uniformContinuous_comp_left f.symm.toContinuousMap |>.comp
+    uniformEmbedding_toContinuousMap.uniformContinuous
+  uniformContinuous_invFun := uniformEmbedding_toContinuousMap.uniformContinuous_iff.mpr <|
+    ContinuousMap.uniformContinuous_comp_left f.toContinuousMap |>.comp
+    uniformEmbedding_toContinuousMap.uniformContinuous
 
 end Uniform
 

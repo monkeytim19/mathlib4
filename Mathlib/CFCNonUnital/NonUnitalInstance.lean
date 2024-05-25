@@ -218,7 +218,8 @@ instance IsSelfAdjoint.instNonUnitalContinuousFunctionalCalculus
     [∀ x : A, CompactSpace (σₙ ℂ x)] :
     NonUnitalContinuousFunctionalCalculus ℝ (IsSelfAdjoint : A → Prop) :=
   QuasispectrumRestricts.cfc (q := IsStarNormal) (p := IsSelfAdjoint) Complex.reCLM
-    Complex.isometry_ofReal (fun _ ↦ isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts)
+    Complex.isometry_ofReal.uniformEmbedding
+    (fun _ ↦ isSelfAdjoint_iff_isStarNormal_and_quasispectrumRestricts)
     (fun _ _ ↦ inferInstance)
 
 end SelfAdjoint
@@ -260,7 +261,7 @@ open NNReal in
 instance Nonneg.instNonUnitalContinuousFunctionalCalculus [∀ a : A, CompactSpace (σₙ ℝ a)] :
     NonUnitalContinuousFunctionalCalculus ℝ≥0 (fun x : A ↦ 0 ≤ x) :=
   QuasispectrumRestricts.cfc (q := IsSelfAdjoint) ContinuousMap.realToNNReal
-    isometry_subtype_coe (fun _ ↦ nonneg_iff_isSelfAdjoint_and_quasispectrumRestricts)
+    uniformEmbedding_subtype_val (fun _ ↦ nonneg_iff_isSelfAdjoint_and_quasispectrumRestricts)
     (fun _ _ ↦ inferInstance)
 
 end Nonneg

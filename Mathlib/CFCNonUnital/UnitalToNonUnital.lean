@@ -8,9 +8,12 @@ open ContinuousMapZero Set
 variable {R A : Type*} {p : A → Prop} [Field R] [StarRing R] [MetricSpace R] [CompleteSpace R]
 variable [TopologicalRing R] [ContinuousStar R] [Ring A] [StarRing A] [TopologicalSpace A]
 variable [Algebra R A] [ContinuousFunctionalCalculus R p]
+variable [h_cpct : ∀ a : A, CompactSpace (spectrum R a)]
 
 lemma ContinuousFunctionalCalculus.toNonUnital : NonUnitalContinuousFunctionalCalculus R p where
   exists_cfc_of_predicate a ha := by
+    have h_cpct' : CompactSpace (quasispectrum R a) := by
+      sorry -- exists elsewhere, should be a lemma or an instance
     let e := ContinuousMapZero.toContinuousMapHom (X := quasispectrum R a) (R := R)
     let f : C(spectrum R a, quasispectrum R a) :=
       ⟨_, continuous_inclusion <| spectrum_subset_quasispectrum R a⟩
@@ -23,7 +26,8 @@ lemma ContinuousFunctionalCalculus.toNonUnital : NonUnitalContinuousFunctionalCa
       have : T0Space C(↑(quasispectrum R a), R)₀ := sorry -- PR#12992
       refine (cfcHom_closedEmbedding ha).comp <|
         (UniformInducing.uniformEmbedding ?_).toClosedEmbedding
-      have : ClosedEmbedding f := sorry -- needs compactness of spectrum
+      have : ClosedEmbedding f := Continuous.closedEmbedding f.continuous <| inclusion_injective <|
+        spectrum_subset_quasispectrum R a
       refine uniformInducing_precomp_toContinuousMap_of_almost_surj this ?_
       simp only [← Subtype.val_injective.image_injective.eq_iff, image_union, image_singleton,
         ← range_comp, image_univ, f, ContinuousMap.coe_mk, val_comp_inclusion, Subtype.range_coe,
