@@ -1,3 +1,4 @@
+import Mathlib.Topology.ContinuousFunction.Compact
 import Mathlib.Topology.ContinuousFunction.NonUnitalFunctionalCalculus
 import Mathlib.CFCNonUnital.ContinuousMapZeroMaterial
 
@@ -22,8 +23,6 @@ lemma ContinuousFunctionalCalculus.toNonUnital : NonUnitalContinuousFunctionalCa
       (ψ : C(quasispectrum R a, R) →⋆ₙₐ[R] C(spectrum R a, R)).comp e
     refine ⟨ψ', ?closedEmbedding, ?map_id, ?map_spectrum, ?predicate⟩
     case closedEmbedding =>
-      have : CompleteSpace C(↑(quasispectrum R a), R)₀ := sorry -- PR#12992
-      have : T0Space C(↑(quasispectrum R a), R)₀ := sorry -- PR#12992
       refine (cfcHom_closedEmbedding ha).comp <|
         (UniformInducing.uniformEmbedding ?_).toClosedEmbedding
       have : ClosedEmbedding f := Continuous.closedEmbedding f.continuous <| inclusion_injective <|

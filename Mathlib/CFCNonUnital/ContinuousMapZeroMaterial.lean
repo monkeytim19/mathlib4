@@ -97,13 +97,6 @@ section Uniform
 variable {X Y R : Type*} [TopologicalSpace X] [Zero X]
 variable [UniformSpace R] [Zero R]
 
-protected instance instUniformSpace : UniformSpace C(X, R)₀ := .comap toContinuousMap inferInstance
-
--- PR#12992
-lemma uniformEmbedding_toContinuousMap : UniformEmbedding (toContinuousMap (X := X) (R := R)) where
-  comap_uniformity := rfl
-  inj := sorry
-
 -- TODO: clean a bit
 lemma uniformInducing_precomp_toContinuousMap_of_almost_surj [T1Space X] [TopologicalSpace Y]
     {i : Y → X} (hi₁ : ClosedEmbedding i) (hi₂ : range i ∪ {0} = univ) :
@@ -166,15 +159,7 @@ instance instContinuousMapModule : Module C(X, R) C(X, R)₀ :=
 
 lemma smul_coe (f : C(X, R)) (g₀ : C(X, R)₀) : f • (g₀ : C(X, R)) = ↑(f • g₀) := rfl
 
-@[simp] lemma coe_add (f g : C(X, R)₀) : ⇑(f + g) = f + g := rfl
-@[simp] lemma coe_mul (f g : C(X, R)₀) : ⇑(f * g) = f * g := rfl
-@[simp] lemma coe_zero : ⇑(0 : C(X, R)₀) = 0 := rfl
-@[simp] lemma coe_smul (r : R) (f : C(X, R)₀) : ⇑(r • f) = r • f := rfl
 @[simp] lemma coe_smul' (g : C(X, R)) (f : C(X, R)₀) : ⇑(g • f) = ⇑g • ⇑f := rfl
-@[simp] lemma coe_star [StarRing R] [ContinuousStar R] (f : C(X, R)₀) : ⇑(star f) = star ⇑f := rfl
-
-instance instCanLift : CanLift C(X, R) C(X, R)₀ (↑) (fun f ↦ f 0 = 0) where
-  prf f hf := ⟨⟨f, hf⟩, rfl⟩
 
 @[simps]
 def toContinuousMapHom [StarRing R] [ContinuousStar R] : C(X, R)₀ →⋆ₙₐ[R] C(X, R) where

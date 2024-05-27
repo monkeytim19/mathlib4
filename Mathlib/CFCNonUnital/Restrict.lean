@@ -93,8 +93,6 @@ lemma closedEmbedding_nonUnitalStarAlgHom {a : A} {φ : C(σₙ S a, S)₀ →�
     (halg : UniformEmbedding (algebraMap R S)) [h_cpct : CompactSpace (σₙ S a)] :
     ClosedEmbedding (h.nonUnitalStarAlgHom φ) := by
   have := h.compactSpace
-  have : CompleteSpace C(σₙ R a, R)₀ := sorry -- PR#12992
-  have : T0Space C(σₙ S a, S)₀ := sorry -- PR#12992
   have : h.homeomorph.symm 0 = 0 := Subtype.ext (map_zero <| algebraMap _ _)
   refine hφ.comp <| UniformEmbedding.toClosedEmbedding <| .comp
     (ContinuousMapZero.uniformEmbedding_comp _ halg)
