@@ -20,11 +20,11 @@ variable (R) in
 @[simps]
 def nonUnitalStarAlgHom_precomp (f : C(X, Y)₀) : C(Y, R)₀ →⋆ₙₐ[R] C(X, R)₀ where
   toFun g := g.comp f
-  map_zero' := ext fun _ ↦ rfl
-  map_add' _ _ := ext <| by simp
-  map_mul' _ _ := ext <| by simp
-  map_star' _ := ext <| by simp
-  map_smul' _ _ := ext <| by simp
+  map_zero' := rfl
+  map_add' _ _ := rfl
+  map_mul' _ _ := rfl
+  map_star' _ := rfl
+  map_smul' _ _ := rfl
 
 @[simp]
 lemma smul_apply (m : M) (f : C(X, R)₀) (x : X) : (m • f) x = m • f x := rfl
