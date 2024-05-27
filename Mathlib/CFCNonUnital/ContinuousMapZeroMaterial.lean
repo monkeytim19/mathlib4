@@ -42,13 +42,13 @@ def ContinuousMap.sumEquiv :
   left_inv f := rfl
   right_inv f := ext <| by rintro (x|y) <;> rfl
 
-variable (X Y Z) in
-def ContinuousMap.sumHomeomorph :
-    C(X, Z) × C(Y, Z) ≃ₜ C(X ⊕ Y, Z) where
-  toEquiv := ContinuousMap.sumEquiv X Y Z
-  continuous_toFun := continuous_compactOpen.mpr fun K hK U hU ↦ by
-    sorry
-  continuous_invFun := sorry
+-- variable (X Y Z) in
+-- def ContinuousMap.sumHomeomorph :
+--     C(X, Z) × C(Y, Z) ≃ₜ C(X ⊕ Y, Z) where
+--   toEquiv := ContinuousMap.sumEquiv X Y Z
+--   continuous_toFun := continuous_compactOpen.mpr fun K hK U hU ↦ by
+--     sorry
+--   continuous_invFun := sorry
 
 end MissingHomeomorph
 
