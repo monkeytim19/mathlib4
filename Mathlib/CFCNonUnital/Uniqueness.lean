@@ -8,7 +8,6 @@ import Mathlib.Analysis.NormedSpace.Spectrum
 import Mathlib.Topology.ContinuousFunction.NonUnitalFunctionalCalculus
 import Mathlib.Topology.ContinuousFunction.StoneWeierstrass
 import Mathlib.CFCNonUnital.NonUnitalInstance
-import Mathlib.CFCNonUnital.UnitizationL1Norm
 section RCLike
 
 variable {𝕜 A : Type*} [RCLike 𝕜]

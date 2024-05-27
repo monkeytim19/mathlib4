@@ -2,7 +2,7 @@ import Mathlib.Analysis.NormedSpace.Star.ContinuousFunctionalCalculus.Instances
 import Mathlib.Analysis.NormedSpace.Star.Unitization
 import Mathlib.CFCNonUnital.AdjoinSpan
 import Mathlib.CFCNonUnital.Restrict
-import Mathlib.CFCNonUnital.UnitizationL1Norm
+import Mathlib.Analysis.NormedSpace.UnitizationL1
 import Mathlib.Topology.ContinuousFunction.NonUnitalFunctionalCalculus
 
 section QuasispectrumCompact
