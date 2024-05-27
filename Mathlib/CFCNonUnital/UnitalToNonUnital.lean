@@ -13,8 +13,11 @@ variable [h_cpct : ∀ a : A, CompactSpace (spectrum R a)]
 
 lemma ContinuousFunctionalCalculus.toNonUnital : NonUnitalContinuousFunctionalCalculus R p where
   exists_cfc_of_predicate a ha := by
+    -- Should this be a lemma ?
     have h_cpct' : CompactSpace (quasispectrum R a) := by
-      sorry -- exists elsewhere, should be a lemma or an instance
+      specialize h_cpct a
+      simp_rw [← isCompact_iff_compactSpace, quasispectrum_eq_spectrum_union_zero] at h_cpct ⊢
+      exact h_cpct.union isCompact_singleton
     let e := ContinuousMapZero.toContinuousMapHom (X := quasispectrum R a) (R := R)
     let f : C(spectrum R a, quasispectrum R a) :=
       ⟨_, continuous_inclusion <| spectrum_subset_quasispectrum R a⟩
