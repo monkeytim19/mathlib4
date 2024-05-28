@@ -1631,6 +1631,12 @@ import Mathlib.CategoryTheory.UnivLE
 import Mathlib.CategoryTheory.Whiskering
 import Mathlib.CategoryTheory.WithTerminal
 import Mathlib.CategoryTheory.Yoneda
+import Mathlib.CFCNonUnital.AdjoinSpan
+import Mathlib.CFCNonUnital.ContinuousMapZeroMaterial
+import Mathlib.CFCNonUnital.NonUnitalInstance
+import Mathlib.CFCNonUnital.Restrict
+import Mathlib.CFCNonUnital.Uniqueness
+import Mathlib.CFCNonUnital.UnitalToNonUnital
 import Mathlib.Combinatorics.Additive.AP.Three.Behrend
 import Mathlib.Combinatorics.Additive.AP.Three.Defs
 import Mathlib.Combinatorics.Additive.Corner.Defs

@@ -98,6 +98,7 @@ variable {X Y R : Type*} [TopologicalSpace X] [Zero X]
 variable [UniformSpace R] [Zero R]
 
 -- TODO: clean a bit
+-- This is the only thing still needed from this file
 lemma uniformInducing_precomp_toContinuousMap_of_almost_surj [T1Space X] [TopologicalSpace Y]
     {i : Y → X} (hi₁ : ClosedEmbedding i) (hi₂ : range i ∪ {0} = univ) :
     UniformInducing (fun f : C(X, R)₀ ↦ f.toContinuousMap.comp ⟨i, hi₁.continuous⟩) where
@@ -113,25 +114,6 @@ lemma uniformInducing_precomp_toContinuousMap_of_almost_surj [T1Space X] [Topolo
     ext ⟨x, rfl⟩ <;>
     [exact map_zero f; exact map_zero g]
 
-lemma uniformEmbedding_comp [UniformSpace Y] [Zero Y] (g : C(Y, R)₀) (hg : UniformEmbedding g) :
-    UniformEmbedding (g.comp · : C(X, Y)₀ → C(X, R)₀) :=
-  uniformEmbedding_toContinuousMap.of_comp_iff.mp <|
-    ContinuousMap.uniformEmbedding_comp g.toContinuousMap hg |>.comp
-      uniformEmbedding_toContinuousMap
-
-def _root_.UniformEquiv.arrowCongrLeft₀ [TopologicalSpace Y] [Zero Y] (f : X ≃ₜ Y) (hf : f 0 = 0) :
-    C(X, R)₀ ≃ᵤ C(Y, R)₀ where
-  toFun g := g.comp ⟨f.symm.toContinuousMap, (f.toEquiv.apply_eq_iff_eq_symm_apply.eq ▸ hf).symm⟩
-  invFun g := g.comp ⟨f.toContinuousMap, hf⟩
-  left_inv g := ext fun _ ↦ congrArg g <| f.left_inv _
-  right_inv g := ext fun _ ↦ congrArg g <| f.right_inv _
-  uniformContinuous_toFun := uniformEmbedding_toContinuousMap.uniformContinuous_iff.mpr <|
-    ContinuousMap.uniformContinuous_comp_left f.symm.toContinuousMap |>.comp
-    uniformEmbedding_toContinuousMap.uniformContinuous
-  uniformContinuous_invFun := uniformEmbedding_toContinuousMap.uniformContinuous_iff.mpr <|
-    ContinuousMap.uniformContinuous_comp_left f.toContinuousMap |>.comp
-    uniformEmbedding_toContinuousMap.uniformContinuous
-
 end Uniform
 
 section Semiring
@@ -139,15 +121,6 @@ section Semiring
 variable {X R : Type*} [TopologicalSpace X] [Zero X]
 variable [TopologicalSpace R] [CommSemiring R] [TopologicalSemiring R]
 
-
-@[simps!]
-protected def id {s : Set R} [Zero s] (h0 : ((0 : s) : R) = 0) : C(s, R)₀ :=
-  ⟨.restrict s (.id R), h0⟩
-
-@[simp]
-lemma toContinuousMap_id {s : Set R} [Zero s] (h0 : ((0 : s) : R) = 0) :
-    (ContinuousMapZero.id h0 : C(s, R)) = .restrict s (.id R) :=
-  rfl
 
 instance instContinuousMapSMul : SMul C(X, R) C(X, R)₀ where
   smul f g₀ := ⟨f * g₀, by simp⟩
@@ -160,15 +133,6 @@ instance instContinuousMapModule : Module C(X, R) C(X, R)₀ :=
 lemma smul_coe (f : C(X, R)) (g₀ : C(X, R)₀) : f • (g₀ : C(X, R)) = ↑(f • g₀) := rfl
 
 @[simp] lemma coe_smul' (g : C(X, R)) (f : C(X, R)₀) : ⇑(g • f) = ⇑g • ⇑f := rfl
-
-@[simps]
-def toContinuousMapHom [StarRing R] [ContinuousStar R] : C(X, R)₀ →⋆ₙₐ[R] C(X, R) where
-  toFun f := f
-  map_smul' _ _ := rfl
-  map_zero' := rfl
-  map_add' _ _ := rfl
-  map_mul' _ _ := rfl
-  map_star' _ := rfl
 
 lemma closedEmbedding_toContinuousMapHom [T1Space R] [StarRing R] [ContinuousStar R] :
     ClosedEmbedding (toContinuousMapHom (X := X) (R := R)) where
@@ -191,24 +155,6 @@ def toContinuousMapHomL : C(X, R)₀ →L[C(X, R)] C(X, R) where
   map_add' _ _ := rfl
   map_smul' _ _ := rfl
   cont := continuous_induced_dom
-
-instance instSMulCommClass' {X R : Type*} [Zero X] [TopologicalSpace X]
-    [CommSemiring R] [TopologicalSpace R] [TopologicalSemiring R] {M : Type*}
-    [SMulZeroClass M R] [SMulCommClass M R R] [ContinuousConstSMul M R] :
-    SMulCommClass M C(X, R)₀ C(X, R)₀ where
-  smul_comm m f g := ext fun x ↦ smul_comm m (f x) (g x)
-
-instance instIsScalarTower' {X R : Type*} [Zero X] [TopologicalSpace X]
-    [CommSemiring R] [TopologicalSpace R] [TopologicalSemiring R] {M : Type*}
-    [SMulZeroClass M R] [IsScalarTower M R R] [ContinuousConstSMul M R] :
-    IsScalarTower M C(X, R)₀ C(X, R)₀ where
-  smul_assoc m f g := ext fun x ↦ smul_assoc m (f x) (g x)
-
-instance instStarModule {X R : Type*} [Zero X] [TopologicalSpace X]
-    [CommSemiring R] [StarRing R] [TopologicalSpace R] [TopologicalSemiring R] {M : Type*}
-    [SMulZeroClass M R] [ContinuousConstSMul M R] [Star M] [StarModule M R] [ContinuousStar R]:
-    StarModule M C(X, R)₀ where
-  star_smul r f := ext fun x ↦ star_smul r (f x)
 
 end Semiring
 

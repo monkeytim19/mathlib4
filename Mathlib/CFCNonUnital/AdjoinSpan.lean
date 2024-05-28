@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Algebra.Subalgebra.Unitization
-import Mathlib.CFCNonUnital.ContinuousMapZeroMaterial
+import Mathlib.Topology.ContinuousFunction.ContinuousMapZero
+--import Mathlib.CFCNonUnital.ContinuousMapZeroMaterial
 import Mathlib.Tactic.Peel
 import Mathlib.Topology.ContinuousFunction.StoneWeierstrass
 
@@ -139,11 +140,12 @@ lemma ContinuousMapZero.adjoin_id_dense {s : Set 𝕜} [Zero s] (h0 : ((0 : s) :
     [CompactSpace s] : Dense (adjoin 𝕜 {(.id h0 : C(s, 𝕜)₀)} : Set C(s, 𝕜)₀) := by
   have h0' : 0 ∈ s := h0 ▸ (0 : s).property
   -- should move this out elsewhere
-  have : T2Space C(s, 𝕜)₀ := closedEmbedding_toContinuousMapHom.toEmbedding.t2Space
+  have : T2Space C(s, 𝕜)₀ := inferInstance -- closedEmbedding_toContinuousMapHom.toEmbedding.t2Space
   rw [dense_iff_closure_eq,
-    ← closedEmbedding_toContinuousMapHom.injective.preimage_image (closure _),
-    ← closedEmbedding_toContinuousMapHom.closure_image_eq, ← NonUnitalStarSubalgebra.coe_map,
-    NonUnitalStarAlgHom.map_adjoin_singleton, toContinuousMapHom_apply, toContinuousMap_id h0,
+    ← closedEmbedding_toContinuousMap.injective.preimage_image (closure _),
+    ← closedEmbedding_toContinuousMap.closure_image_eq, ← coe_toContinuousMapHom,
+    ← NonUnitalStarSubalgebra.coe_map, NonUnitalStarAlgHom.map_adjoin_singleton,
+    toContinuousMapHom_apply, toContinuousMap_id h0,
     ← ContinuousMap.ker_evalStarAlgHom_eq_closure_adjoin_id s h0']
   apply Set.eq_univ_of_forall fun f ↦ ?_
   simp only [Set.mem_preimage, toContinuousMapHom_apply, SetLike.mem_coe, RingHom.mem_ker,

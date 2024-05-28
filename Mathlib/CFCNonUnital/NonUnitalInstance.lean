@@ -68,7 +68,7 @@ open Unitization in
 lemma closedEmbedding_φ : ClosedEmbedding (φ hp₁ a ha) := by
   simp only [φ, NonUnitalStarAlgHom.coe_comp]
   refine ((cfcHom_closedEmbedding (hp₁.mpr ha)).comp ?_).comp
-    ContinuousMapZero.closedEmbedding_toContinuousMapHom
+    ContinuousMapZero.closedEmbedding_toContinuousMap
   let e : C(σₙ 𝕜 a, 𝕜) ≃ₜ C(σ 𝕜 (a : A⁺¹), 𝕜) :=
     { (Homeomorph.compStarAlgEquiv' 𝕜 𝕜 <| .setCongr <|
         (quasispectrum_eq_spectrum_inr' 𝕜 𝕜 a).symm) with

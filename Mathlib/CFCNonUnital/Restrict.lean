@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import Mathlib.Analysis.NormedSpace.Spectrum
-import Mathlib.CFCNonUnital.ContinuousMapZeroMaterial
 import Mathlib.Topology.Algebra.Algebra
 import Mathlib.Topology.ContinuousFunction.Compact
 import Mathlib.Topology.ContinuousFunction.NonUnitalFunctionalCalculus
@@ -15,30 +14,6 @@ variable {X Y M R S : Type*} [Zero X] [Zero Y] [CommSemiring M]
   [CommSemiring R] [StarRing R] [TopologicalSemiring R] [ContinuousStar R]
   [CommSemiring S] [StarRing S] [TopologicalSemiring S] [ContinuousStar S]
   [Module M R] [Module M S] [ContinuousConstSMul M R] [ContinuousConstSMul M S]
-
-variable (R) in
-@[simps]
-def nonUnitalStarAlgHom_precomp (f : C(X, Y)₀) : C(Y, R)₀ →⋆ₙₐ[R] C(X, R)₀ where
-  toFun g := g.comp f
-  map_zero' := rfl
-  map_add' _ _ := rfl
-  map_mul' _ _ := rfl
-  map_star' _ := rfl
-  map_smul' _ _ := rfl
-
-@[simp]
-lemma smul_apply (m : M) (f : C(X, R)₀) (x : X) : (m • f) x = m • f x := rfl
-
-variable (X) in
-@[simps apply]
-def nonUnitalStarAlgHom_postcomp (φ : R →⋆ₙₐ[M] S) (hφ : Continuous φ) :
-    C(X, R)₀ →⋆ₙₐ[M] C(X, S)₀ where
-  toFun := .comp ⟨⟨φ, hφ⟩, by simp⟩
-  map_zero' := ext <| by simp
-  map_add' _ _ := ext <| by simp
-  map_mul' _ _ := ext <| by simp
-  map_star' _ := ext <| by simp [map_star]
-  map_smul' r f := ext <| by simp
 
 end ContinuousMapZero
 
