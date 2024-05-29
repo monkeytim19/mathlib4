@@ -135,16 +135,16 @@ end Defs
 
 section EdgeCard
 
-lemma range_castAddEmb_compl_eq_attach_image : ((Set.range (@Fin.castAddEmb n r)).toFinset)ᶜ =
+lemma range_castAddOrderEmb_compl_eq_attach_image :
+    ((Set.range (@Fin.castAddOrderEmb n r)).toFinset)ᶜ =
     (range r).attach.image (fun x ↦ ⟨n + x.1, add_lt_add_left (mem_range.mp x.2) n⟩) := by
   ext x
-  simp_rw [Set.toFinset_range, mem_compl, mem_image, mem_univ, Fin.castAddEmb_apply, mem_attach,
-    true_and, Subtype.exists, mem_range]
+  simp_rw [Set.toFinset_range, mem_compl, mem_image, mem_univ, Fin.castAddOrderEmb_apply,
+    mem_attach, true_and, Subtype.exists, mem_range]
   have : (∃ a, Fin.castAdd r a = x) ↔ x < n := by
     constructor <;> intro h
     · rw [← h.choose_spec]; simp
     · use ⟨x.1, h⟩; simp
-  simp_rw [Fin.castAdd] at this
   rw [this, not_lt]
   constructor <;> intro h
   · use x - n, (Nat.sub_lt_iff_lt_add h).mpr x.2
@@ -152,16 +152,16 @@ lemma range_castAddEmb_compl_eq_attach_image : ((Set.range (@Fin.castAddEmb n r)
   · rw [← h.choose_spec.choose_spec, le_add_iff_nonneg_right]
     exact zero_le _
 
-lemma range_castAddEmb_eq_attach_image : (Set.range (@Fin.castAddEmb n r)).toFinset =
+lemma range_castAddOrderEmb_eq_attach_image :
+    (Set.range (@Fin.castAddOrderEmb n r)).toFinset =
     (range n).attach.image (fun x ↦ ⟨x.1, (mem_range.mp x.2).trans_le (Nat.le_add_right ..)⟩) := by
   ext x
-  simp only [Set.toFinset_range, mem_image, mem_univ, Fin.castAddEmb_apply, true_and, mem_attach,
-    Subtype.exists, mem_range]
+  simp only [Set.toFinset_range, mem_image, mem_univ, Fin.castAddOrderEmb_apply, true_and,
+    mem_attach, Subtype.exists, mem_range]
   have : (∃ a, Fin.castAdd r a = x) ↔ x < n := by
     constructor <;> intro h
     · rw [← h.choose_spec]; simp
     · use ⟨x.1, h⟩; simp
-  simp_rw [Fin.castAdd] at this
   rw [this]
   constructor <;> intro h
   · use x, h
@@ -171,13 +171,13 @@ lemma range_castAddEmb_eq_attach_image : (Set.range (@Fin.castAddEmb n r)).toFin
 open BigOperators in
 theorem card_edgeFinset_turanGraph_add (hr : 0 < r) : (turanGraph (n + r) r).edgeFinset.card =
     (r - 1) * n + (turanGraph n r).edgeFinset.card + r.choose 2 := by
-  set R := (Set.range (@Fin.castAddEmb n r)).toFinset
+  set R := (Set.range (@Fin.castAddOrderEmb n r)).toFinset
   have Rc : R.card = n := by
     simp only [R]
-    rw [Set.toFinset_range, card_image_of_injective _ (Fin.castAddEmb r).injective, card_fin]
+    rw [Set.toFinset_range, card_image_of_injective _ (Fin.castAddOrderEmb r).injective, card_fin]
   rw [(turanGraph (n + r) r).edgeFinset_decompose_card R]
   congr 2
-  · rw [crossEdges_edgeFinset_card, range_castAddEmb_compl_eq_attach_image,
+  · rw [crossEdges_edgeFinset_card, range_castAddOrderEmb_compl_eq_attach_image,
       sum_image (by simp [SetCoe.ext_iff])]
     let K := fun y ↦ (R.filter (fun z : Fin (n + r) ↦ z % r ≠ (n + y) % r)).card
     let L := fun y ↦ (R.filter (fun z : Fin (n + r) ↦ z % r = (n + y) % r)).card
@@ -193,7 +193,7 @@ theorem card_edgeFinset_turanGraph_add (hr : 0 < r) : (turanGraph (n + r) r).edg
     have Lle : ∀ x, L x ≤ n := fun x ↦ Rc.symm ▸ card_filter_le R _
     zify [Lle, hr]
     rw [sum_sub_distrib, sum_const, card_range, nsmul_eq_mul, sub_one_mul, sub_right_inj]
-    simp_rw [L, R, range_castAddEmb_eq_attach_image, filter_image]
+    simp_rw [L, R, range_castAddOrderEmb_eq_attach_image, filter_image]
     conv_lhs =>
       enter [2, x]
       rw [card_image_of_injective _ (fun _ _ c ↦ by simpa [Subtype.val_inj] using c),
@@ -222,7 +222,7 @@ theorem card_edgeFinset_turanGraph_add (hr : 0 < r) : (turanGraph (n + r) r).edg
   · symm
     apply Iso.card_edgeFinset_eq
     rw [Set.coe_toFinset]
-    exact {toEquiv := (@Fin.castAddEmb n r).orderIso, map_rel_iff' := by simp [turanGraph]}
+    exact {toEquiv := (@Fin.castAddOrderEmb n r).orderIso, map_rel_iff' := by simp [turanGraph]}
   · convert card_edgeFinset_top_eq_card_choose_two
     · ext x' y'
       obtain ⟨x, hx⟩ := x'
