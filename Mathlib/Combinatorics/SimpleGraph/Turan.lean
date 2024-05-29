@@ -144,6 +144,7 @@ lemma range_castAddEmb_compl_eq_attach_image : ((Set.range (@Fin.castAddEmb n r)
     constructor <;> intro h
     · rw [← h.choose_spec]; simp
     · use ⟨x.1, h⟩; simp
+  simp_rw [Fin.castAdd] at this
   rw [this, not_lt]
   constructor <;> intro h
   · use x - n, (Nat.sub_lt_iff_lt_add h).mpr x.2
@@ -160,6 +161,7 @@ lemma range_castAddEmb_eq_attach_image : (Set.range (@Fin.castAddEmb n r)).toFin
     constructor <;> intro h
     · rw [← h.choose_spec]; simp
     · use ⟨x.1, h⟩; simp
+  simp_rw [Fin.castAdd] at this
   rw [this]
   constructor <;> intro h
   · use x, h

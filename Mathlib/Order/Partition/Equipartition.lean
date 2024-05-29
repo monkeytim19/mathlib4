@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import Mathlib.Data.Set.Equitable
-import Mathlib.Data.Nat.Interval
+import Mathlib.Order.Interval.Finset.Nat
 import Mathlib.Order.Partition.Finpartition
 
 #align_import order.partition.equipartition from "leanprover-community/mathlib"@"b363547b3113d350d053abdf2884e9850a56b205"
@@ -176,7 +176,7 @@ def IsEquipartition.partsEquivRight :
   left_inv i := by cases' i with i i <;> simp [mem_Ico.mp i.2]
   right_inv i := by
     conv_lhs => arg 1; dsimp only
-    by_cases c : i < s.card % P.parts.card <;> conv_lhs => arg 1; simp only [c]
+    by_cases c : i < s.card % P.parts.card <;> conv_lhs => arg 1; simp [c]
 
 /-- Equivalence between the `k` parts of an equipartition and `[0, k)`, with the larger parts
 mapping to the smaller numbers and vice versa. -/
