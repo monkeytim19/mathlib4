@@ -518,8 +518,7 @@ theorem exists_subset_part_bijOn : ∃ r ⊆ s, Set.BijOn P.part r P.parts := by
 noncomputable def equivProduct : s ≃ { t : Finset α × ℕ // t.1 ∈ P.parts ∧ t.2 < t.1.card } where
   toFun x := by
     let p := P.part x.1
-    exact ⟨⟨p, p.equivFin ⟨x.1, P.mem_part x.2⟩⟩,
-      ⟨by dsimp only; exact P.part_mem x.2, by dsimp only; apply Fin.prop⟩⟩
+    exact ⟨⟨p, p.equivFin ⟨x.1, P.mem_part x.2⟩⟩, ⟨P.part_mem x.2, Fin.prop _⟩⟩
   invFun t := by
     obtain ⟨⟨p, i⟩, ⟨m, l⟩⟩ := t
     let x := p.equivFin.symm ⟨i, l⟩

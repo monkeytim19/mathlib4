@@ -135,13 +135,8 @@ mapping to the smaller numbers and vice versa. -/
 noncomputable def IsEquipartition.partsEquiv (hP : P.IsEquipartition) :
     P.parts ≃ Fin P.parts.card := hP.exists_partsEquiv.choose
 
-theorem IsEquipartition.large_part_iff_partsEquiv_lt (hP : P.IsEquipartition) (ht : t ∈ P.parts) :
-    t.card = s.card / P.parts.card + 1 ↔ hP.partsEquiv ⟨t, ht⟩ < s.card % P.parts.card := by
-  exact hP.exists_partsEquiv.choose_spec ⟨t, ht⟩
-
-theorem IsEquipartition.equivProduct_sum_lt (hP : P.IsEquipartition)
-    {p q} (m : p ∈ P.parts) (l : q < p.card) :
-    (hP.partsEquiv ⟨p, m⟩).1 < P.parts.card ∧
+theorem IsEquipartition.equivProduct_sum_lt (hP : P.IsEquipartition) {p q}
+    (m : p ∈ P.parts) (l : q < p.card) : (hP.partsEquiv ⟨p, m⟩).1 < P.parts.card ∧
       (hP.partsEquiv ⟨p, m⟩).1 + P.parts.card * q < s.card := by
   set r := hP.partsEquiv ⟨p, m⟩
   constructor
@@ -164,7 +159,7 @@ theorem IsEquipartition.equivProduct_sum_lt (hP : P.IsEquipartition)
           exact l
         _ < s.card % P.parts.card + P.parts.card * (s.card / P.parts.card) := by
           rw [add_lt_add_iff_right]
-          exact (hP.large_part_iff_partsEquiv_lt m).mp h
+          exact (hP.exists_partsEquiv.choose_spec ⟨p, m⟩).mp h
         _ = _ := Nat.mod_add_div _ _
 
 theorem IsEquipartition.equivProduct_lt_card_partsEquiv (hP : P.IsEquipartition)
@@ -176,11 +171,12 @@ theorem IsEquipartition.equivProduct_lt_card_partsEquiv (hP : P.IsEquipartition)
   · by_contra! q'
     rw [← mul_le_mul_left y] at q'
     have r' := ((hP.card_part_eq_average_iff p.2).trans
-      (hP.large_part_iff_partsEquiv_lt p.2).not).mp h
-    simp_rw [Subtype.coe_eta, p, Equiv.apply_symm_apply, not_lt] at r'
+      (hP.exists_partsEquiv.choose_spec p).not).mp h
+    change ¬hP.partsEquiv p < s.card % P.parts.card at r'
+    simp_rw [p, Equiv.apply_symm_apply, not_lt] at r'
     have g := add_le_add r' q'
     simp_rw [Nat.mod_add_div, ← not_lt] at g
-    exact absurd b g
+    contradiction
   · rw [Nat.lt_add_one_iff, Nat.le_div_iff_mul_le y, mul_comm]
     calc
       P.parts.card * q ≤ r + P.parts.card * q := by simp
