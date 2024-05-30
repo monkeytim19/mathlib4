@@ -479,6 +479,9 @@ theorem nonempty_of_mem_parts {a : Finset α} (ha : a ∈ P.parts) : a.Nonempty 
   nonempty_iff_ne_empty.2 <| P.ne_bot ha
 #align finpartition.nonempty_of_mem_parts Finpartition.nonempty_of_mem_parts
 
+@[simp]
+lemma mem_of_mem_of_mem_parts (ha : a ∈ t) (ht : t ∈ P.parts) : a ∈ s := mem_of_subset (P.le ht) ha
+
 lemma eq_of_mem_parts (ht : t ∈ P.parts) (hu : u ∈ P.parts) (hat : a ∈ t) (hau : a ∈ u) : t = u :=
   P.disjoint.elim ht hu <| not_disjoint_iff.2 ⟨a, hat, hau⟩
 
@@ -514,6 +517,25 @@ theorem exists_subset_part_bijOn : ∃ r ⊆ s, Set.BijOn P.part r P.parts := by
   lift r to Finset α using s.finite_toSet.subset hrs
   exact ⟨r, mod_cast hrs, hr⟩
 
+/-- Equivalence between a finpartition's parts as a dependent sum and the partitioned set. -/
+def equivSigmaParts : s ≃ Σ t : P.parts, t.1 where
+  toFun x := ⟨⟨P.part x.1, P.part_mem x.2⟩, ⟨x, P.mem_part x.2⟩⟩
+  invFun x := ⟨x.2, mem_of_subset (P.le x.1.2) x.2.2⟩
+  left_inv x := by simp
+  right_inv x := by
+    ext e
+    · obtain ⟨⟨p, mp⟩, ⟨f, mf⟩⟩ := x
+      dsimp only at mf ⊢
+      have mfs := mem_of_subset (P.le mp) mf
+      rw [P.eq_of_mem_parts mp (P.part_mem mfs) mf (P.mem_part mfs)]
+    · simp
+
+/-lemma exists_enumeration : ∃ f : s ≃ Σ t : P.parts, Fin t.1.card,
+    ∀ a b : s, P.part a = P.part b ↔ (f a).1 = (f b).1 := by
+  let k : (t : P.parts) → t.1 ≃ Fin t.1.card := fun t ↦ t.1.equivFin
+  let kk := P.equivSigmaParts
+  sorry-/
+
 /-- First equivalence in the `IsEquipartition.partPreservingEquiv` chain. -/
 noncomputable def equivProduct : s ≃ { t : Finset α × ℕ // t.1 ∈ P.parts ∧ t.2 < t.1.card } where
   toFun x := by
@@ -522,13 +544,13 @@ noncomputable def equivProduct : s ≃ { t : Finset α × ℕ // t.1 ∈ P.parts
   invFun t := by
     obtain ⟨⟨p, i⟩, ⟨m, l⟩⟩ := t
     let x := p.equivFin.symm ⟨i, l⟩
-    exact ⟨x.1, mem_of_subset ((le_sup m).trans P.sup_parts.le) x.2⟩
+    exact ⟨x.1, mem_of_subset (P.le m) x.2⟩
   left_inv x := by simp
   right_inv t := by
     obtain ⟨⟨p, i⟩, ⟨m, l⟩⟩ := t
     let x := p.equivFin.symm ⟨i, l⟩
     change ⟨(P.part x, (P.part x).equivFin ⟨x, _⟩), _⟩ = Subtype.mk (p, i) _
-    have ξ : x.1 ∈ s := mem_of_subset ((le_sup m).trans P.sup_parts.le) x.2
+    have ξ : x.1 ∈ s := mem_of_subset (P.le m) x.2
     have ξ' : P.part x.1 = p := P.eq_of_mem_parts (P.part_mem ξ) m (P.mem_part ξ) x.2
     simp only [ξ', Subtype.mk.injEq, Prod.mk.injEq, true_and]
     have : p.equivFin x = i := by simp [x]
