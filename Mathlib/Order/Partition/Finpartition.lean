@@ -656,7 +656,6 @@ theorem eq_bot_iff : P.parts.card = s.card ↔ P = ⊥ := by
     exact P.part_mem hc1
   · rw [h, parts_bot, card_map]
 
-/-- Note that this inequality still holds when `P` is empty. -/
 lemma card_mod_card_parts_le : s.card % P.parts.card ≤ P.parts.card := by
   rcases P.parts.card.eq_zero_or_pos with h | h
   · have h' := h
