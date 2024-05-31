@@ -44,6 +44,7 @@ ERR_OPT = 6 # set_option
 ERR_AUT = 7 # malformed authors list
 ERR_TAC = 9 # imported Mathlib.Tactic
 ERR_IBY = 11 # isolated by
+ERR_IWH = 22 # isolated where
 ERR_DOT = 12 # isolated or low focusing dot
 ERR_SEM = 13 # the substring " ;"
 ERR_WIN = 14 # Windows line endings "\r\n"
@@ -319,6 +320,8 @@ def isolated_by_dot_semicolon_check(lines, path):
             prev_line = lines[line_nr - 2][1].rstrip()
             if not prev_line.endswith(",") and not re.search(", fun [^,]* (=>|↦)$", prev_line):
                 errors += [(ERR_IBY, line_nr, path)]
+        elif line.lstrip() == "where":
+            errors += [(ERR_IWH, line_nr, path)]
         if line.lstrip().startswith(". "):
             errors += [(ERR_DOT, line_nr, path)]
             line = line.replace(". ", "· ", 1)
@@ -381,6 +384,8 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_TAC", "Files in mathlib cannot import the whole tactic folder")
         if errno == ERR_IBY:
             output_message(path, line_nr, "ERR_IBY", "Line is an isolated 'by'")
+        if errno == ERR_IWH:
+            output_message(path, line_nr, "ERR_IWH", "Line is an isolated where")
         if errno == ERR_DOT:
             output_message(path, line_nr, "ERR_DOT", "Line is an isolated focusing dot or uses . instead of ·")
         if errno == ERR_SEM:
