@@ -530,7 +530,7 @@ lemma exists_enumeration : ∃ f : s ≃ Σ t : P.parts, Fin t.1.card,
   use P.equivSigmaParts.trans ((Equiv.refl _).sigmaCongr (fun t ↦ t.1.equivFin))
   simp [equivSigmaParts, Equiv.sigmaCongr, Equiv.sigmaCongrLeft]
 
-theorem sum_card_parts : ∑ i in P.parts, i.card = s.card := by
+theorem sum_card_parts : ∑ i ∈ P.parts, i.card = s.card := by
   convert congr_arg Finset.card P.biUnion_parts
   rw [card_biUnion P.supIndep.pairwiseDisjoint]
   rfl

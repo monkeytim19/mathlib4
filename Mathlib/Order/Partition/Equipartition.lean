@@ -18,6 +18,9 @@ difference of `1`.
 ## Main declarations
 
 * `Finpartition.IsEquipartition`: Predicate for a `Finpartition` to be an equipartition.
+* `Finpartition.IsEquipartition.exists_partPreservingEquiv`: part-preserving enumeration of a finset
+  equipped with an equipartition. Indices of elements in the same part are congruent modulo
+  the number of parts.
 -/
 
 
@@ -74,7 +77,7 @@ theorem IsEquipartition.card_part_le_average_add_one (hP : P.IsEquipartition) (h
   exact Finset.EquitableOn.le_add_one hP ht
 #align finpartition.is_equipartition.card_part_le_average_add_one Finpartition.IsEquipartition.card_part_le_average_add_one
 
-theorem IsEquipartition.filter_neg_average_add_one_eq_average (hP : P.IsEquipartition) :
+theorem IsEquipartition.filter_ne_average_add_one_eq_average (hP : P.IsEquipartition) :
     P.parts.filter (fun p ↦ ¬p.card = s.card / P.parts.card + 1) =
     P.parts.filter (fun p ↦ p.card = s.card / P.parts.card) := by
   ext p
@@ -88,10 +91,10 @@ theorem IsEquipartition.card_large_parts_eq_mod (hP : P.IsEquipartition) :
   have z := P.sum_card_parts
   rw [← sum_filter_add_sum_filter_not (s := P.parts)
       (p := fun x ↦ x.card = s.card / P.parts.card + 1),
-    hP.filter_neg_average_add_one_eq_average,
+    hP.filter_ne_average_add_one_eq_average,
     sum_const_nat (m := s.card / P.parts.card + 1) (by simp),
     sum_const_nat (m := s.card / P.parts.card) (by simp),
-    ← hP.filter_neg_average_add_one_eq_average,
+    ← hP.filter_ne_average_add_one_eq_average,
     mul_add, add_comm, ← add_assoc, ← add_mul, mul_one, add_comm (Finset.card _),
     filter_card_add_filter_neg_card_eq_card, add_comm] at z
   rw [← add_left_inj, Nat.mod_add_div, z]
@@ -104,7 +107,7 @@ theorem IsEquipartition.card_small_parts_eq_mod (hP : P.IsEquipartition) :
   conv_rhs =>
     arg 1
     rw [← filter_card_add_filter_neg_card_eq_card (p := fun p ↦ p.card = s.card / P.parts.card + 1)]
-  rw [hP.card_large_parts_eq_mod, add_tsub_cancel_left, hP.filter_neg_average_add_one_eq_average]
+  rw [hP.card_large_parts_eq_mod, add_tsub_cancel_left, hP.filter_ne_average_add_one_eq_average]
 
 /-- There exists an enumeration of an equipartition's parts where
 larger parts map to smaller numbers and vice versa. -/
@@ -130,8 +133,8 @@ theorem IsEquipartition.exists_partsEquiv (hP : P.IsEquipartition) :
   simp_rw [f, Equiv.trans_apply, Equiv.sumCongr_apply, finCongr_apply, Fin.coe_cast]
   by_cases hc : p.card = s.card / P.parts.card + 1 <;> simp [hc]
 
-/-- An equipartition of a finset with `n` elements into `k` parts has
-a part-preserving equivalence with the residue classes of `Fin n` modulo `k`. -/
+/-- Given a finset equipartitioned into `k` parts, its elements can be enumerated such that
+elements in the same part have congruent indices modulo `k`. -/
 theorem IsEquipartition.exists_partPreservingEquiv (hP : P.IsEquipartition) : ∃ f : s ≃ Fin s.card,
     ∀ a b : s, P.part a = P.part b ↔ f a % P.parts.card = f b % P.parts.card := by
   obtain ⟨f, hf⟩ := P.exists_enumeration
@@ -161,7 +164,8 @@ theorem IsEquipartition.exists_partPreservingEquiv (hP : P.IsEquipartition) : �
   simp_rw [Equiv.ofBijective_apply, z, hf a b, Nat.mul_add_mod,
     Nat.mod_eq_of_lt (gl a), Nat.mod_eq_of_lt (gl b), Fin.val_eq_val, g.apply_eq_iff_eq]
 
-/-! ### Discrete and indiscrete finpartition -/
+/-! ### Discrete and indiscrete finpartitions -/
+
 
 variable (s) -- [Decidable (a = ⊥)]
 
