@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Algebra.BigOperators.Group.Finset
 import Mathlib.Order.SupIndep
 import Mathlib.Order.Atoms
 
@@ -553,15 +553,6 @@ theorem parts_bot (s : Finset α) :
   rfl
 #align finpartition.parts_bot Finpartition.parts_bot
 
-@[simp]
-theorem part_bot (ha : a ∈ s) : (⊥ : Finpartition s).part a = {a} := by
-  have h₁ := (⊥ : Finpartition s).part_mem ha
-  have h₂ := (⊥ : Finpartition s).mem_part ha
-  rw [parts_bot, mem_map, Embedding.coeFn_mk] at h₁
-  obtain ⟨b, _, sb⟩ := h₁
-  rw [← sb, mem_singleton] at h₂
-  simp only [sb, h₂]
-
 theorem card_bot (s : Finset α) : (⊥ : Finpartition s).parts.card = s.card :=
   Finset.card_map _
 #align finpartition.card_bot Finpartition.card_bot
@@ -582,29 +573,6 @@ theorem card_parts_le_card : P.parts.card ≤ s.card := by
   rw [← card_bot s]
   exact card_mono bot_le
 #align finpartition.card_parts_le_card Finpartition.card_parts_le_card
-
-theorem eq_bot_iff : P.parts.card = s.card ↔ P = ⊥ := by
-  constructor <;> intro h
-  · have hc : ∀ p ∈ P.parts, p.card = 1 := by
-      contrapose! h
-      obtain ⟨c, hc, nc⟩ := h
-      refine' (Nat.lt_or_gt.mpr (Or.inl _))
-      rw [← P.sum_card_parts, card_eq_sum_ones]
-      have l : ∀ p ∈ P.parts, 1 ≤ p.card := fun p hp ↦ card_pos.mpr (P.nonempty_of_mem_parts hp)
-      exact sum_lt_sum l ⟨c, hc, lt_of_le_of_ne (l c hc) nc.symm⟩
-    replace hc : ∀ p ∈ P.parts, ∃ c ∈ s, {c} = p := fun p hp ↦ by
-      obtain ⟨c, hc⟩ := card_eq_one.mp (hc p hp)
-      exact ⟨c, singleton_subset_iff.mp (hc ▸ P.le hp), hc.symm⟩
-    ext p
-    simp_rw [parts_bot, mem_map, Embedding.coeFn_mk]
-    refine' ⟨fun c ↦ hc p c, fun k ↦ _⟩
-    obtain ⟨c, hc1, hc2⟩ := k
-    obtain ⟨d, hd1, hd2⟩ := hc (P.part c) (P.part_mem hc1)
-    have r := P.mem_part hc1
-    rw [← hd2, mem_singleton] at r; subst r
-    rw [← hc2, hd2]
-    exact P.part_mem hc1
-  · rw [h, parts_bot, card_map]
 
 lemma card_mod_card_parts_le : s.card % P.parts.card ≤ P.parts.card := by
   rcases P.parts.card.eq_zero_or_pos with h | h
