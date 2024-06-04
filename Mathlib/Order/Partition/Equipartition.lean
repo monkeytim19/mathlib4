@@ -133,7 +133,7 @@ theorem IsEquipartition.exists_partsEquiv (hP : P.IsEquipartition) :
 /-- An equipartition of a finset with `n` elements into `k` parts has
 a part-preserving equivalence with the residue classes of `Fin n` modulo `k`. -/
 theorem IsEquipartition.exists_partPreservingEquiv (hP : P.IsEquipartition) : ∃ f : s ≃ Fin s.card,
-      ∀ a b : s, P.part a = P.part b ↔ f a % P.parts.card = f b % P.parts.card := by
+    ∀ a b : s, P.part a = P.part b ↔ f a % P.parts.card = f b % P.parts.card := by
   obtain ⟨f, hf⟩ := P.exists_enumeration
   obtain ⟨g, hg⟩ := hP.exists_partsEquiv
   let z := fun a ↦ P.parts.card * (f a).2 + g (f a).1
