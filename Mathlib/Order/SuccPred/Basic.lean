@@ -986,15 +986,8 @@ section SuccPredOrder
 section Preorder
 variable [Preorder α] [SuccOrder α] [PredOrder α] {a b : α}
 
-lemma le_succ_pred (a : α) : a ≤ succ (pred a) := by
-  by_cases h : IsMin a
-  · exact h.le_pred.trans (le_succ _)
-  · exact (pred_covBy_of_not_isMin h).wcovBy.le_succ
-
-lemma pred_succ_le (a : α) : pred (succ a) ≤ a := by
-  by_cases h : IsMax a
-  · exact (pred_le _).trans h.succ_le
-  · exact (covBy_succ_of_not_isMax h).wcovBy.pred_le
+lemma le_succ_pred (a : α) : a ≤ succ (pred a) := (pred_wcovBy _).le_succ
+lemma pred_succ_le (a : α) : pred (succ a) ≤ a := (wcovBy_succ _).pred_le
 
 lemma pred_le_iff_le_succ : pred a ≤ b ↔ a ≤ succ b where
   mp hab := (le_succ_pred _).trans (succ_mono hab)
