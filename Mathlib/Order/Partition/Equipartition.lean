@@ -130,87 +130,36 @@ theorem IsEquipartition.exists_partsEquiv (hP : P.IsEquipartition) :
   simp_rw [f, Equiv.trans_apply, Equiv.sumCongr_apply, finCongr_apply, Fin.coe_cast]
   by_cases hc : p.card = s.card / P.parts.card + 1 <;> simp [hc]
 
-/-- Equivalence between the `k` parts of an equipartition and `[0, k)`, with the larger parts
-mapping to the smaller numbers and vice versa. -/
-noncomputable def IsEquipartition.partsEquiv (hP : P.IsEquipartition) :
-    P.parts ≃ Fin P.parts.card := hP.exists_partsEquiv.choose
-
-theorem IsEquipartition.equivProduct_sum_lt (hP : P.IsEquipartition) {p q}
-    (m : p ∈ P.parts) (l : q < p.card) : (hP.partsEquiv ⟨p, m⟩).1 < P.parts.card ∧
-      (hP.partsEquiv ⟨p, m⟩).1 + P.parts.card * q < s.card := by
-  set r := hP.partsEquiv ⟨p, m⟩
-  constructor
-  · exact r.2
-  · cases' hP.card_parts_eq_average m with h h
-    · calc
-        r + P.parts.card * q < P.parts.card + P.parts.card * q := by
-          rw [add_lt_add_iff_right]
-          exact r.2
-        _ = P.parts.card * (q + 1) := by rw [add_comm]; rfl
-        _ ≤ P.parts.card * (s.card / P.parts.card) :=
-          mul_le_mul_of_nonneg_left (h.trans_ge l) (Nat.zero_le _)
-        _ ≤ s.card % P.parts.card + P.parts.card * (s.card / P.parts.card) := by simp
-        _ = _ := Nat.mod_add_div _ _
-    · calc
-        r + P.parts.card * q ≤ r + P.parts.card * (s.card / P.parts.card) := by
-          rw [add_le_add_iff_left]
-          apply mul_le_mul_of_nonneg_left _ (Nat.zero_le _)
-          rw [← Nat.lt_add_one_iff, ← h]
-          exact l
-        _ < s.card % P.parts.card + P.parts.card * (s.card / P.parts.card) := by
-          rw [add_lt_add_iff_right]
-          exact (hP.exists_partsEquiv.choose_spec ⟨p, m⟩).mp h
-        _ = _ := Nat.mod_add_div _ _
-
-theorem IsEquipartition.equivProduct_lt_card_partsEquiv (hP : P.IsEquipartition)
-    {r q} (l : r < P.parts.card) (b : r + P.parts.card * q < s.card) :
-    q < (hP.partsEquiv.symm ⟨r, l⟩).1.card := by
-  let p := hP.partsEquiv.symm ⟨r, l⟩
-  have y : 0 < P.parts.card := r.zero_le.trans_lt l
-  cases' hP.card_parts_eq_average p.2 with h h <;> rw [h]
-  · by_contra! q'
-    rw [← mul_le_mul_left y] at q'
-    have r' := ((hP.card_part_eq_average_iff p.2).trans
-      (hP.exists_partsEquiv.choose_spec p).not).mp h
-    change ¬hP.partsEquiv p < s.card % P.parts.card at r'
-    simp_rw [p, Equiv.apply_symm_apply, not_lt] at r'
-    have g := add_le_add r' q'
-    simp_rw [Nat.mod_add_div, ← not_lt] at g
-    contradiction
-  · rw [Nat.lt_add_one_iff, Nat.le_div_iff_mul_le y, mul_comm]
-    calc
-      P.parts.card * q ≤ r + P.parts.card * q := by simp
-      _ ≤ _ := b.le
-
-/-- Second equivalence in the `IsEquipartition.partPreservingEquiv` chain. -/
-noncomputable def IsEquipartition.equivProduct2 (hP : P.IsEquipartition) :
-    { t : Finset α × ℕ // t.1 ∈ P.parts ∧ t.2 < t.1.card } ≃
-    { t : ℕ × ℕ // t.1 < P.parts.card ∧ t.1 + P.parts.card * t.2 < s.card } where
-  toFun := fun ⟨⟨p, q⟩, ⟨m, l⟩⟩ ↦
-    ⟨⟨(hP.partsEquiv ⟨p, m⟩).1, q⟩, hP.equivProduct_sum_lt m l⟩
-  invFun := fun ⟨⟨r, q⟩, ⟨l, b⟩⟩ ↦
-    ⟨⟨hP.partsEquiv.symm ⟨r, l⟩, q⟩,
-      by simp only [coe_mem, true_and]; exact hP.equivProduct_lt_card_partsEquiv l b⟩
-  left_inv := fun ⟨⟨p, q⟩, ⟨m, l⟩⟩ ↦ by aesop
-  right_inv := fun ⟨⟨r, q⟩, ⟨l, b⟩⟩ ↦ by aesop
-
-theorem IsEquipartition.equivProduct2_part_eq_part (hP : P.IsEquipartition) {t u} :
-    t.1.1 = u.1.1 ↔ (hP.equivProduct2 t).1.1 = (hP.equivProduct2 u).1.1 := by
-  constructor
-  · intro; aesop_destruct_products; rename _ = _ => a; subst a; rfl
-  · intro a; simp only [equivProduct2, Equiv.coe_fn_mk] at a
-    aesop_destruct_products
-    simp_all [Fin.val_eq_val]
-
 /-- An equipartition of a finset with `n` elements into `k` parts has
 a part-preserving equivalence with the residue classes of `Fin n` modulo `k`. -/
-noncomputable def IsEquipartition.partPreservingEquiv (hP : P.IsEquipartition) :
-    { m : s ≃ Fin s.card //
-      ∀ a b : s, P.part a = P.part b ↔ m a % P.parts.card = m b % P.parts.card } where
-  val := (P.equivProduct.trans hP.equivProduct2).trans P.equivProduct3
-  property a b := by
-    rw [P.equivProduct_part_eq_part, hP.equivProduct2_part_eq_part, P.equivProduct3_part_eq_part]
-    rfl
+theorem IsEquipartition.exists_partPreservingEquiv (hP : P.IsEquipartition) : ∃ f : s ≃ Fin s.card,
+      ∀ a b : s, P.part a = P.part b ↔ f a % P.parts.card = f b % P.parts.card := by
+  obtain ⟨f, hf⟩ := P.exists_enumeration
+  obtain ⟨g, hg⟩ := hP.exists_partsEquiv
+  let z := fun a ↦ P.parts.card * (f a).2 + g (f a).1
+  have gl := fun a ↦ (g (f a).1).2
+  have less : ∀ a, z a < s.card := fun a ↦ by
+    rcases hP.card_parts_eq_average (f a).1.2 with (c | c)
+    · calc
+        _ < P.parts.card * ((f a).2 + 1) := add_lt_add_left (gl a) _
+        _ ≤ P.parts.card * (s.card / P.parts.card) := mul_le_mul_left' (c ▸ (f a).2.2) _
+        _ ≤ P.parts.card * (s.card / P.parts.card) + s.card % P.parts.card := Nat.le_add_right ..
+        _ = _ := Nat.div_add_mod ..
+    · rw [← Nat.div_add_mod s.card P.parts.card]
+      exact add_lt_add_of_le_of_lt (mul_le_mul_left' (by omega) _) ((hg (f a).1).mp c)
+  let z' : s → Fin s.card := fun a ↦ ⟨z a, less a⟩
+  have bij : z'.Bijective := by
+    refine (bijective_iff_injective_and_card z').mpr ⟨fun a b e ↦ ?_, by simp⟩
+    simp_rw [z', z, Fin.mk.injEq, mul_comm P.parts.card] at e
+    haveI : NeZero P.parts.card := ⟨((Nat.zero_le _).trans_lt (gl a)).ne'⟩
+    change P.parts.card.divModEquiv.symm (_, _) = P.parts.card.divModEquiv.symm (_, _) at e
+    simp only [Equiv.apply_eq_iff_eq, Prod.mk.injEq] at e
+    apply_fun f
+    exact Sigma.ext e.2 <| (Fin.heq_ext_iff (by rw [e.2])).mpr e.1
+  use Equiv.ofBijective _ bij
+  intro a b
+  simp_rw [Equiv.ofBijective_apply, z, hf a b, Nat.mul_add_mod,
+    Nat.mod_eq_of_lt (gl a), Nat.mod_eq_of_lt (gl b), Fin.val_eq_val, g.apply_eq_iff_eq]
 
 /-! ### Discrete and indiscrete finpartition -/
 

@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Order.SupIndep
 import Mathlib.Order.Atoms
-import Mathlib.Data.Fintype.Powerset
 
 #align_import order.partition.finpartition from "leanprover-community/mathlib"@"d6fad0e5bf2d6f48da9175d25c3dc5706b3834ce"
 
@@ -478,9 +477,6 @@ theorem nonempty_of_mem_parts {a : Finset α} (ha : a ∈ P.parts) : a.Nonempty 
   nonempty_iff_ne_empty.2 <| P.ne_bot ha
 #align finpartition.nonempty_of_mem_parts Finpartition.nonempty_of_mem_parts
 
-@[simp]
-lemma mem_of_mem_of_mem_parts (ha : a ∈ t) (ht : t ∈ P.parts) : a ∈ s := mem_of_subset (P.le ht) ha
-
 lemma eq_of_mem_parts (ht : t ∈ P.parts) (hu : u ∈ P.parts) (hat : a ∈ t) (hau : a ∈ u) : t = u :=
   P.disjoint.elim ht hu <| not_disjoint_iff.2 ⟨a, hat, hau⟩
 
@@ -508,7 +504,7 @@ theorem mem_part (ha : a ∈ s) : a ∈ P.part a := by simp [part, ha, choose_pr
 
 theorem part_surjOn : Set.SurjOn P.part s P.parts := fun p hp ↦ by
   obtain ⟨x, hx⟩ := P.nonempty_of_mem_parts hp
-  have hx' := mem_of_subset ((le_sup hp).trans P.sup_parts.le) hx
+  have hx' := mem_of_subset (P.le hp) hx
   use x, hx', (P.existsUnique_mem hx').unique ⟨P.part_mem hx', P.mem_part hx'⟩ ⟨hp, hx⟩
 
 theorem exists_subset_part_bijOn : ∃ r ⊆ s, Set.BijOn P.part r P.parts := by
@@ -529,76 +525,10 @@ def equivSigmaParts : s ≃ Σ t : P.parts, t.1 where
       rw [P.eq_of_mem_parts mp (P.part_mem mfs) mf (P.mem_part mfs)]
     · simp
 
-/-lemma exists_enumeration : ∃ f : s ≃ Σ t : P.parts, Fin t.1.card,
+lemma exists_enumeration : ∃ f : s ≃ Σ t : P.parts, Fin t.1.card,
     ∀ a b : s, P.part a = P.part b ↔ (f a).1 = (f b).1 := by
-  let k : (t : P.parts) → t.1 ≃ Fin t.1.card := fun t ↦ t.1.equivFin
-  let kk := P.equivSigmaParts
-  sorry-/
-
-/-- First equivalence in the `IsEquipartition.partPreservingEquiv` chain. -/
-noncomputable def equivProduct : s ≃ { t : Finset α × ℕ // t.1 ∈ P.parts ∧ t.2 < t.1.card } where
-  toFun x := by
-    let p := P.part x.1
-    exact ⟨⟨p, p.equivFin ⟨x.1, P.mem_part x.2⟩⟩, ⟨P.part_mem x.2, Fin.prop _⟩⟩
-  invFun t := by
-    obtain ⟨⟨p, i⟩, ⟨m, l⟩⟩ := t
-    let x := p.equivFin.symm ⟨i, l⟩
-    exact ⟨x.1, mem_of_subset (P.le m) x.2⟩
-  left_inv x := by simp
-  right_inv t := by
-    obtain ⟨⟨p, i⟩, ⟨m, l⟩⟩ := t
-    let x := p.equivFin.symm ⟨i, l⟩
-    change ⟨(P.part x, (P.part x).equivFin ⟨x, _⟩), _⟩ = Subtype.mk (p, i) _
-    have ξ : x.1 ∈ s := mem_of_subset (P.le m) x.2
-    have ξ' : P.part x.1 = p := P.eq_of_mem_parts (P.part_mem ξ) m (P.mem_part ξ) x.2
-    simp only [ξ', Subtype.mk.injEq, Prod.mk.injEq, true_and]
-    have : p.equivFin x = i := by simp [x]
-    convert this
-
-theorem equivProduct_part_eq_part {b} (ha : a ∈ s) (hb : b ∈ s) : P.part a = P.part b ↔
-    (P.equivProduct ⟨a, ha⟩).1.1 = (P.equivProduct ⟨b, hb⟩).1.1 := ⟨id, id⟩
-
-theorem equivProduct3_lt {n} (l : n < s.card) :
-    n % P.parts.card < P.parts.card ∧
-    n % P.parts.card + P.parts.card * (n / P.parts.card) < s.card := by
-  have y : 0 < P.parts.card := by
-    have z := n.zero_le.trans_lt l
-    rw [Finset.card_pos] at z ⊢
-    obtain ⟨w, m⟩ := z
-    use P.part w, P.part_mem m
-  exact ⟨Nat.mod_lt _ y, by rw [Nat.mod_add_div]; exact l⟩
-
-/-- Third equivalence in the `IsEquipartition.partPreservingEquiv` chain. -/
-def equivProduct3 :
-    { t : ℕ × ℕ // t.1 < P.parts.card ∧ t.1 + P.parts.card * t.2 < s.card } ≃
-    Fin s.card where
-  toFun := fun ⟨⟨r, q⟩, ⟨_, b⟩⟩ ↦ ⟨r + P.parts.card * q, b⟩
-  invFun := fun ⟨n, l⟩ ↦
-    ⟨⟨n % P.parts.card, n / P.parts.card⟩, equivProduct3_lt (P := P) l⟩
-  left_inv := fun ⟨⟨r, q⟩, ⟨a, b⟩⟩ ↦ by
-    simp only [Nat.add_mul_mod_self_left, Subtype.mk.injEq, Prod.mk.injEq]
-    have y : 0 < P.parts.card := r.zero_le.trans_lt a
-    constructor
-    · rw [Nat.mod_eq_iff_lt y.ne.symm]; exact a
-    · rw [Nat.add_mul_div_left _ _ y, (Nat.div_eq_zero_iff y).mpr a, zero_add]
-  right_inv := fun ⟨n, l⟩ ↦ by
-    dsimp only; split; rename_i lt
-    simp_rw [Subtype.mk.injEq, Prod.mk.injEq, Fin.mk.injEq] at lt ⊢
-    rw [← lt.1, ← lt.2, Nat.mod_add_div]
-
-theorem equivProduct3_part_eq_part {t u} :
-    t.1.1 = u.1.1 ↔ (equivProduct3 P t) % P.parts.card = (equivProduct3 P u) % P.parts.card := by
-  unfold equivProduct3
-  constructor <;> intro h
-  · aesop
-  · aesop_destruct_products
-    rename_i a _ b _ l1 _ l2 _ e
-    simp_all only [Equiv.coe_fn_mk, Nat.add_mul_mod_self_left]
-    have y : 0 < P.parts.card := a.zero_le.trans_lt l1
-    have a' : a % P.parts.card = a := by rw [Nat.mod_eq_iff_lt y.ne.symm]; exact l1
-    have b' : b % P.parts.card = b := by rw [Nat.mod_eq_iff_lt y.ne.symm]; exact l2
-    rw [a', b'] at e
-    exact e
+  use P.equivSigmaParts.trans ((Equiv.refl _).sigmaCongr (fun t ↦ t.1.equivFin))
+  simp [equivSigmaParts, Equiv.sigmaCongr, Equiv.sigmaCongrLeft]
 
 theorem sum_card_parts : ∑ i in P.parts, i.card = s.card := by
   convert congr_arg Finset.card P.biUnion_parts

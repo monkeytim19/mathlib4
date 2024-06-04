@@ -429,9 +429,9 @@ theorem notAdj_card_parts : (notAdjFinpartition hmax).parts.card = min (Fintype.
 
 /-- **Turán's theorem**, forward direction.
 Any `r + 1`-cliquefree Turán-maximal graph on `n` vertices is isomorphic to `turanGraph n r`. -/
-noncomputable def IsTuranMaximal.isoTuranGraph : G ≃g turanGraph (Fintype.card V) r := by
+theorem IsTuranMaximal.nonempty_isoTuranGraph : Nonempty (G ≃g turanGraph (Fintype.card V) r) := by
   let fp := notAdjFinpartition hmax
-  obtain ⟨zm, zp⟩ := (notAdj_equipartition hmax).partPreservingEquiv
+  obtain ⟨zm, zp⟩ := (notAdj_equipartition hmax).exists_partPreservingEquiv
   use (Equiv.subtypeUnivEquiv Finset.mem_univ).symm.trans zm
   intro a b
   simp_rw [turanGraph, Equiv.trans_apply, Equiv.subtypeUnivEquiv_symm_apply]
@@ -553,6 +553,6 @@ end Reverse
 `r + 1`-cliquefree Turán-maximal graph on `n` vertices. -/
 theorem isTuranMaximal_iff_nonempty_iso_turanGraph (hr : 0 < r) :
     G.IsTuranMaximal r ↔ Nonempty (G ≃g turanGraph (Fintype.card V) r) :=
-  ⟨fun h ↦ ⟨h.isoTuranGraph⟩, fun h ↦ G.isTuranMaximal_of_iso hr h.some⟩
+  ⟨fun h ↦ h.nonempty_isoTuranGraph, fun h ↦ G.isTuranMaximal_of_iso hr h.some⟩
 
 end SimpleGraph
