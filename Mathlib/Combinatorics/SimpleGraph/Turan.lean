@@ -17,8 +17,8 @@ which states that the `r + 1`-cliquefree graph on `n` vertices with the most edg
 
 The forward direction of the proof performs "Zykov symmetrisation", which first shows
 constructively that non-adjacency is an equivalence relation in a maximal graph, so it must be
-complete multipartite with the parts being the equivalence classes. Then basic manipulations show
-that the graph is (isomorphic to) the Turán graph for the given parameters.
+complete multipartite with the parts being the equivalence classes. Then basic manipulations
+show that the graph is isomorphic to the Turán graph for the given parameters.
 
 The reverse direction proceeds as in Turán's original proof, via induction on the vertex count.
 If we know that `turanGraph n r` is Turán-maximal, consider any `r + 1`-cliquefree graph on
@@ -36,10 +36,16 @@ These bounds add up to exactly `(turanGraph (n + r) r).edgeFinset.card`, complet
 * `SimpleGraph.IsTuranMaximal`: `G.IsTuranMaximal r` means that `G` has the most number of edges for
   its number of vertices while still being `r + 1`-cliquefree.
 * `SimpleGraph.turanGraph n r`: The canonical `r + 1`-cliquefree Turán graph on `n` vertices.
-* `isTuranMaximalIsoTuranGraph`: the forward direction, an isomorphism between `G` satisfying
-  `G.IsTuranMaximal r` and `turanGraph n r`.
+* `SimpleGraph.IsTuranMaximal.finpartition`: The result of Zykov symmetrisation, a finpartition of
+  the vertices such that two vertices are in the same part iff they are non-adjacent.
+* `SimpleGraph.IsTuranMaximal.nonempty_iso_TuranGraph`: The forward direction, an isomorphism
+  between `G` satisfying `G.IsTuranMaximal r` and `turanGraph n r`.
 * `isTuranMaximal_of_iso`: the reverse direction, `G.IsTuranMaximal r` given the isomorphism.
 * `isTuranMaximal_iff_nonempty_iso_turanGraph`: Turán's theorem in full.
+
+## References
+
+* https://en.wikipedia.org/wiki/Turán%27s_theorem
 -/
 
 open Finset
@@ -124,7 +130,7 @@ lemma exists_IsTuranMaximal : ∃ H : SimpleGraph V, H.IsTuranMaximal r := by
   obtain ⟨S, Sm, Sl⟩ := exists_max_image c.toFinset (·.edgeFinset.card) cn
   use S
   rw [Set.mem_toFinset] at Sm
-  refine' ⟨Sm, _⟩
+  refine ⟨Sm, ?_⟩
   intro I _ cf
   by_cases Im : I ∈ c.toFinset
   · convert Sl I Im
@@ -240,221 +246,153 @@ end EdgeCard
 
 section Forward
 
-variable {s t u : V} (hmax : G.IsTuranMaximal r)
+variable {G} {s t u : V} (h : G.IsTuranMaximal r)
 
-/-- First part of Zykov symmetrisation. If vertex `s` has larger degree than
-a non-adjacent other vertex `t`, `G.replaceVertex s t` has more edges than `G`. -/
-theorem card_lt_card_replaceVertex1 (hn : ¬G.Adj s t) (hd : G.degree t < G.degree s) :
-    G.edgeFinset.card < (G.replaceVertex s t).edgeFinset.card := by
-  rw [G.card_edgeFinset_replaceVertex_of_not_adj hn, add_tsub_assoc_of_le hd.le]
-  exact Nat.lt_add_of_pos_right <| tsub_pos_iff_lt.mpr hd
+namespace IsTuranMaximal
 
-/-- Second part of Zykov symmetrisation. A witness to non-transitivity of non-adjacency
-where the involved vertices have the same degree can be used to generate
-(using `replaceVertex` only) a graph with more edges. -/
-theorem card_lt_card_replaceVertex2 (hst : ¬G.Adj s t) (hsu : ¬G.Adj s u) (htu : G.Adj t u)
-    (hdt : G.degree s = G.degree t) (hdu : G.degree s = G.degree u) :
-    G.edgeFinset.card < ((G.replaceVertex s t).replaceVertex s u).edgeFinset.card := by
-  have ntu : t ≠ u := G.ne_of_adj htu
-  have nst : s ≠ t := fun a => by subst a; contradiction
+/-- In a Turán-maximal graph, non-adjacent vertices have the same degree. -/
+lemma degree_eq_of_not_adj (hn : ¬G.Adj s t) : G.degree s = G.degree t := by
+  rw [IsTuranMaximal] at h; contrapose! h; intro cf
+  wlog hd : G.degree t < G.degree s generalizing G t s
+  · replace hd : G.degree s < G.degree t := lt_of_le_of_ne (le_of_not_lt hd) h
+    exact this (by rwa [adj_comm] at hn) hd.ne' cf hd
+  use G.replaceVertex s t, inferInstance, cf.replaceVertex s t
+  have := G.card_edgeFinset_replaceVertex_of_not_adj hn
+  omega
+
+/-- In a Turán-maximal graph, non-adjacency is transitive. -/
+lemma not_adj_transitive (hst : ¬G.Adj s t) (hsu : ¬G.Adj s u) : ¬G.Adj t u := by
+  have dst := h.degree_eq_of_not_adj hst
+  have dsu := h.degree_eq_of_not_adj hsu
+  rw [IsTuranMaximal] at h; contrapose! h; intro cf
+  use (G.replaceVertex s t).replaceVertex s u, inferInstance,
+    (cf.replaceVertex s t).replaceVertex s u
+  have nst : s ≠ t := fun a ↦ hsu (a ▸ h)
+  have ntu : t ≠ u := G.ne_of_adj h
   have := (G.adj_replaceVertex_iff_of_ne s nst ntu.symm).not.mpr hsu
   rw [card_edgeFinset_replaceVertex_of_not_adj _ this,
-    card_edgeFinset_replaceVertex_of_not_adj _ hst, hdt, Nat.add_sub_cancel]
-  have de1 : (G.replaceVertex s t).degree s = G.degree s := by
+    card_edgeFinset_replaceVertex_of_not_adj _ hst, dst, Nat.add_sub_cancel]
+  have l1 : (G.replaceVertex s t).degree s = G.degree s := by
     unfold degree; congr 1; ext v
     simp only [mem_neighborFinset, SimpleGraph.irrefl, ite_self]
     by_cases eq : v = t
-    · subst eq
-      simpa only [not_adj_replaceVertex_same, false_iff]
+    · simpa only [eq, not_adj_replaceVertex_same, false_iff]
     · rw [G.adj_replaceVertex_iff_of_ne s nst eq]
-  have de2 : (G.replaceVertex s t).degree u = G.degree u - 1 := by
-    unfold degree
-    rw [← card_singleton t, ← card_sdiff (by simp [htu.symm])]
+  have l2 : (G.replaceVertex s t).degree u = G.degree u - 1 := by
+    rw [degree, degree, ← card_singleton t, ← card_sdiff (by simp [h.symm])]
     congr 1; ext v
     simp only [mem_neighborFinset, mem_sdiff, mem_singleton, replaceVertex]
-    split_ifs with hu hv hv
-    · simp_all
-    · simp_all
-    · simp [adj_comm, hsu, hv]
-    · simp [adj_comm, hsu, hv]
-  have dpos : 0 < G.degree u := by
-    rw [G.degree_pos_iff_exists_adj u]
-    use t
-    exact htu.symm
-  have dmp : G.degree u - 1 + 1 = G.degree u := Nat.succ_pred_eq_of_pos dpos
-  nth_rw 1 [de1, de2, hdu, ← dmp, add_tsub_assoc_of_le (by simp), add_tsub_cancel_left]
-  linarith
-
-variable {G}
-
-/-- In a Turán-maximal graph, non-adjacency is transitive. -/
-theorem not_adj_transitive (hst : ¬G.Adj s t) (hsu : ¬G.Adj s u) : ¬G.Adj t u := by
-  by_cases z : G.degree s = G.degree t ∧ G.degree s = G.degree u <;>
-    (contrapose! hmax; unfold IsTuranMaximal; push_neg; intro cf)
-  · use (G.replaceVertex s t).replaceVertex s u, inferInstance
-    exact ⟨(cf.replaceVertex s t).replaceVertex s u,
-      card_lt_card_replaceVertex2 _ hst hsu hmax z.1 z.2⟩
-  · rw [Decidable.not_and_iff_or_not_not] at z
-    cases' z with st su
-    · cases' lt_or_gt_of_ne st with less more
-      · use G.replaceVertex t s, inferInstance
-        rw [adj_comm] at hst
-        exact ⟨cf.replaceVertex t s, G.card_lt_card_replaceVertex1 hst less⟩
-      · use G.replaceVertex s t, inferInstance
-        exact ⟨cf.replaceVertex s t, G.card_lt_card_replaceVertex1 hst more⟩
-    · cases' lt_or_gt_of_ne su with less more
-      · use G.replaceVertex u s, inferInstance
-        rw [adj_comm] at hsu
-        exact ⟨cf.replaceVertex u s, G.card_lt_card_replaceVertex1 hsu less⟩
-      · use G.replaceVertex s u, inferInstance
-        exact ⟨cf.replaceVertex s u, G.card_lt_card_replaceVertex1 hsu more⟩
+    split_ifs <;> simp_all [adj_comm]
+  have l3 : 0 < G.degree u := by rw [G.degree_pos_iff_exists_adj u]; use t, h.symm
+  omega
 
 /-- In a Turán-maximal graph, non-adjacency is an equivalence relation. -/
-theorem notAdj_equivalence : Equivalence fun x y => ¬G.Adj x y where
+theorem not_adj_equivalence : Equivalence fun x y ↦ ¬G.Adj x y where
   refl x := by simp
   symm xy := by simp [xy, adj_comm]
   trans xy yz := by
     rw [adj_comm] at xy
-    exact G.not_adj_transitive hmax xy yz
+    exact h.not_adj_transitive xy yz
 
-/-- The non-adjacency setoid over the vertices of a Turán-maximal graph that exists
-because of `notAdj_equivalence`. Said graph is therefore a complete multipartite graph. -/
-def notAdjSetoid : Setoid V := ⟨_, (notAdj_equivalence hmax)⟩
+/-- The non-adjacency setoid over the vertices of a Turán-maximal graph
+induced by `not_adj_equivalence`. -/
+def setoid : Setoid V := ⟨_, h.not_adj_equivalence⟩
 
-instance : DecidableRel (notAdjSetoid hmax).r :=
-  inferInstanceAs <| DecidableRel fun v w => ¬G.Adj v w
+instance : DecidableRel h.setoid.r :=
+  inferInstanceAs <| DecidableRel fun v w ↦ ¬G.Adj v w
 
-/-- The finpartition derived from `notAdjSetoid`. -/
-def notAdjFinpartition : Finpartition (univ : Finset V) :=
-  Finpartition.ofSetoid (notAdjSetoid hmax)
+/-- The finpartition derived from `h.setoid`. -/
+def finpartition : Finpartition (univ : Finset V) := Finpartition.ofSetoid h.setoid
 
-theorem degree_eq_fintype_card_sub_part_card : G.degree s = Fintype.card V -
-    ((notAdjFinpartition hmax).part s).card := by
+lemma not_adj_iff_part_eq : ¬G.Adj s t ↔ h.finpartition.part s = h.finpartition.part t := by
+  change h.setoid.r s t ↔ _
+  rw [← Finpartition.mem_part_ofSetoid_iff_rel]
+  let fp := h.finpartition
+  change t ∈ fp.part s ↔ fp.part s = fp.part t
+  refine ⟨fun c ↦ fp.eq_of_mem_parts ?_ ?_ c ?_, fun c ↦ c ▸ fp.mem_part (mem_univ t)⟩ <;>
+    simp [fp.part_mem, fp.mem_part]
+
+lemma degree_eq_card_sub_part_card : G.degree s = Fintype.card V - (h.finpartition.part s).card :=
   calc
-    G.degree s = (univ.filter (fun b => G.Adj s b)).card := by
+    _ = (univ.filter fun b ↦ G.Adj s b).card := by
       simp [← card_neighborFinset_eq_degree, neighborFinset]
-    _ = Fintype.card V - (univ.filter (fun b => ¬G.Adj s b)).card :=
+    _ = Fintype.card V - (univ.filter fun b ↦ ¬G.Adj s b).card :=
       eq_tsub_of_add_eq (filter_card_add_filter_neg_card_eq_card _)
     _ = _ := by
       congr; ext; rw [mem_filter]
-      convert (Finpartition.mem_part_ofSetoid_iff_rel).symm
-      simp [notAdjSetoid]
+      convert Finpartition.mem_part_ofSetoid_iff_rel.symm
+      simp [setoid]
 
 /-- The parts of a Turán-maximal graph form an equipartition. -/
-theorem notAdj_equipartition : (notAdjFinpartition hmax).IsEquipartition := by
-  let fp := notAdjFinpartition hmax
+theorem isEquipartition : h.finpartition.IsEquipartition := by
+  set fp := h.finpartition
   by_contra hn
   rw [Finpartition.not_isEquipartition] at hn
   obtain ⟨large, hl, small, hs, ineq⟩ := hn
   obtain ⟨w, hw⟩ := fp.nonempty_of_mem_parts hl
   obtain ⟨v, hv⟩ := fp.nonempty_of_mem_parts hs
-  have large_eq : large = fp.part w :=
-    (fp.existsUnique_mem (a := w) (mem_univ _)).unique
-      ⟨hl, hw⟩ ⟨fp.part_mem (mem_univ _), fp.mem_part (mem_univ _)⟩
-  have small_eq : small = fp.part v :=
-    (fp.existsUnique_mem (a := v) (mem_univ _)).unique
-      ⟨hs, hv⟩ ⟨fp.part_mem (mem_univ _), fp.mem_part (mem_univ _)⟩
-  have : ¬IsTuranMaximal G r := by
-    rw [IsTuranMaximal]; push_neg; intro cf
-    use G.replaceVertex v w, inferInstance
-    refine' ⟨cf.replaceVertex v w, _⟩
-    have ha : G.Adj v w := by
-      have lsn : large ≠ small := fun _ => by simp_all only [add_lt_iff_neg_left, not_lt_zero']
-      contrapose! lsn
-      have : _ ∈ fp.part _ ↔ ¬G.Adj v w := Finpartition.mem_part_ofSetoid_iff_rel
-      exact fp.eq_of_mem_parts hl hs hw (small_eq ▸ this.mpr lsn)
-    rw [G.card_edgeFinset_replaceVertex_of_adj ha]
-    have large_le : large.card ≤ Fintype.card V := by
-      simpa using card_le_card large.subset_univ
-    have small_le : small.card ≤ Fintype.card V := by
-      simpa using card_le_card small.subset_univ
-    rw [degree_eq_fintype_card_sub_part_card, ← small_eq,
-      degree_eq_fintype_card_sub_part_card, ← large_eq,
-      Nat.add_sub_assoc (by rw [tsub_le_tsub_iff_left small_le]; linarith),
-      tsub_tsub_tsub_cancel_left large_le, Nat.add_sub_assoc (lt_tsub_iff_left.mpr ineq).le]
-    linarith [tsub_pos_iff_lt.mpr (lt_tsub_iff_left.mpr ineq)]
-  contradiction
+  have large_eq := fp.eq_of_mem_parts hl (fp.part_mem (mem_univ w)) hw (fp.mem_part (mem_univ w))
+  have small_eq := fp.eq_of_mem_parts hs (fp.part_mem (mem_univ v)) hv (fp.mem_part (mem_univ v))
+  apply absurd h
+  rw [IsTuranMaximal]; push_neg; intro cf
+  use G.replaceVertex v w, inferInstance, cf.replaceVertex v w
+  have ha : G.Adj v w := by
+    by_contra hn; rw [h.not_adj_iff_part_eq, ← small_eq, ← large_eq] at hn
+    rw [hn] at ineq; omega
+  rw [G.card_edgeFinset_replaceVertex_of_adj ha,
+    degree_eq_card_sub_part_card h, ← small_eq, degree_eq_card_sub_part_card h, ← large_eq]
+  have : large.card ≤ Fintype.card V := by simpa using card_le_card large.subset_univ
+  omega
 
-theorem notAdj_card_parts_le : (notAdjFinpartition hmax).parts.card ≤ r := by
-  let fp := notAdjFinpartition hmax
-  by_contra! h
-  obtain ⟨z, _, hz⟩ := fp.exists_subset_part_bijOn
+lemma card_parts_le : h.finpartition.parts.card ≤ r := by
+  by_contra! l
+  obtain ⟨z, -, hz⟩ := h.finpartition.exists_subset_part_bijOn
   have ncf : ¬G.CliqueFree z.card := by
-    refine' IsNClique.not_cliqueFree ⟨fun v hv w hw hn ↦ _, rfl⟩
-    norm_cast at hv hw
+    refine IsNClique.not_cliqueFree ⟨fun v hv w hw hn ↦ ?_, rfl⟩
     contrapose! hn
-    have i1 : w ∈ fp.part v := Finpartition.mem_part_ofSetoid_iff_rel.mpr hn
-    have i2 : w ∈ fp.part w := fp.mem_part (mem_univ _)
-    exact hz.injOn hv hw <|
-      fp.eq_of_mem_parts (fp.part_mem (mem_univ _)) (fp.part_mem (mem_univ _)) i1 i2
-  have zc : z.card = fp.parts.card := by
-    rw [← Fintype.card_coe, ← Fintype.card_coe, Fintype.card_eq]
-    let q := hz.equiv
-    use q, q.symm, q.left_inv, q.right_inv
-  rw [zc] at ncf
-  exact absurd (CliqueFree.mono (Nat.succ_le_of_lt h) hmax.1) ncf
+    exact hz.injOn hv hw (by rwa [← h.not_adj_iff_part_eq])
+  rw [Finset.card_eq_of_equiv hz.equiv] at ncf
+  exact absurd (h.1.mono (Nat.succ_le_of_lt l)) ncf
 
 /-- There are `min n r` parts in a graph on `n` vertices satisfying `G.IsTuranMaximal r`.
-The `min` is necessary because `r` may be greater than `n`, in which case `G` is complete but
-still `r + 1`-cliquefree for having insufficiently many vertices. -/
-theorem notAdj_card_parts : (notAdjFinpartition hmax).parts.card = min (Fintype.card V) r := by
-  let fp := notAdjFinpartition hmax
-  apply le_antisymm (le_min fp.card_parts_le_card (notAdj_card_parts_le _))
-  by_contra! h
-  rw [lt_min_iff] at h
-  obtain ⟨x, _, y, _, hn, he⟩ := @exists_ne_map_eq_of_card_lt_of_maps_to
-    (f := fun a => fp.part a) univ fp.parts h.1 (fun _ _ => fp.part_mem (mem_univ _))
-  have : ¬IsTuranMaximal G r := by
-    rw [IsTuranMaximal]; push_neg; intro
-    use G ⊔ edge x y, inferInstance
-    have cf : G.CliqueFree r := by
-      simp_rw [← cliqueFinset_eq_empty_iff, cliqueFinset, filter_eq_empty_iff, mem_univ,
-        forall_true_left, isNClique_iff, and_comm, not_and, isClique_iff]
-      intro z zc
-      obtain ⟨x', xm, y', ym, hn', he'⟩ := @exists_ne_map_eq_of_card_lt_of_maps_to
-        (f := fun a => fp.part a) z fp.parts (zc.symm ▸ h.2)
-        (fun _ _ => fp.part_mem (mem_univ _))
-      unfold Set.Pairwise; push_neg; norm_cast
-      use x', xm, y', ym, hn'
-      change (notAdjSetoid hmax).r x' y'
-      apply Finpartition.mem_part_ofSetoid_iff_rel.mp
-      exact he' ▸ fp.mem_part (mem_univ _)
-    refine' ⟨cf.sup_edge x y, _⟩
-    convert Nat.lt.base G.edgeFinset.card
-    convert G.card_edgeFinset_sup_edge _ hn
-    change (notAdjSetoid hmax).r x y
-    apply Finpartition.mem_part_ofSetoid_iff_rel.mp
-    exact he ▸ fp.mem_part (mem_univ _)
-  contradiction
+`min` handles the `n < r` case, when `G` is complete but still `r + 1`-cliquefree
+for having insufficiently many vertices. -/
+theorem card_parts : h.finpartition.parts.card = min (Fintype.card V) r := by
+  set fp := h.finpartition
+  apply le_antisymm (le_min fp.card_parts_le_card h.card_parts_le)
+  by_contra! l
+  rw [lt_min_iff] at l
+  obtain ⟨x, -, y, -, hn, he⟩ :=
+    exists_ne_map_eq_of_card_lt_of_maps_to l.1 fun a _ ↦ fp.part_mem (mem_univ a)
+  apply absurd h
+  rw [IsTuranMaximal]; push_neg; rintro -
+  have cf : G.CliqueFree r := by
+    simp_rw [← cliqueFinset_eq_empty_iff, cliqueFinset, filter_eq_empty_iff, mem_univ,
+      forall_true_left, isNClique_iff, and_comm, not_and, isClique_iff, Set.Pairwise]
+    intro z zc; push_neg; simp_rw [h.not_adj_iff_part_eq]
+    exact exists_ne_map_eq_of_card_lt_of_maps_to (zc.symm ▸ l.2) fun a _ ↦ fp.part_mem (mem_univ a)
+  use G ⊔ edge x y, inferInstance, cf.sup_edge x y
+  convert Nat.lt.base G.edgeFinset.card
+  convert G.card_edgeFinset_sup_edge _ hn
+  rwa [h.not_adj_iff_part_eq]
 
 /-- **Turán's theorem**, forward direction.
 Any `r + 1`-cliquefree Turán-maximal graph on `n` vertices is isomorphic to `turanGraph n r`. -/
-theorem IsTuranMaximal.nonempty_isoTuranGraph : Nonempty (G ≃g turanGraph (Fintype.card V) r) := by
-  let fp := notAdjFinpartition hmax
-  obtain ⟨zm, zp⟩ := (notAdj_equipartition hmax).exists_partPreservingEquiv
-  use (Equiv.subtypeUnivEquiv Finset.mem_univ).symm.trans zm
+theorem nonempty_iso_turanGraph : Nonempty (G ≃g turanGraph (Fintype.card V) r) := by
+  obtain ⟨zm, zp⟩ := h.isEquipartition.exists_partPreservingEquiv
+  use (Equiv.subtypeUnivEquiv mem_univ).symm.trans zm
   intro a b
   simp_rw [turanGraph, Equiv.trans_apply, Equiv.subtypeUnivEquiv_symm_apply]
-  rw [← not_iff_not]
-  change _ ↔ (notAdjSetoid hmax).r a b
-  rw [← Finpartition.mem_part_ofSetoid_iff_rel]
-  change _ ↔ b ∈ fp.part _
-  have pe : b ∈ fp.part a ↔ fp.part a = fp.part b := by
-    constructor <;> intro h
-    · exact fp.eq_of_mem_parts (fp.part_mem (mem_univ _)) (fp.part_mem (mem_univ _)) h
-        (fp.mem_part (mem_univ _))
-    · rw [h]; exact fp.mem_part (mem_univ _)
-  rw [pe, zp ⟨a, mem_univ _⟩ ⟨b, mem_univ _⟩, notAdj_card_parts, not_not, min_comm]
-  rcases le_or_lt r (Fintype.card V) with h | h
-  · rw [min_eq_left h]; rfl
-  · rw [min_eq_right h.le]
-    have lc : ∀ x, zm ⟨x, _⟩ < Fintype.card V := fun x ↦ (zm ⟨x, mem_univ _⟩).2
-    have cn0 : Fintype.card V ≠ 0 := by by_contra h; exact absurd (h ▸ lc a) not_lt_zero'
-    have rn0 : r ≠ 0 := by linarith
-    rw [(Nat.mod_eq_iff_lt cn0).mpr (lc a), (Nat.mod_eq_iff_lt cn0).mpr (lc b),
-      ← (Nat.mod_eq_iff_lt rn0).mpr ((lc a).trans h),
-      ← (Nat.mod_eq_iff_lt rn0).mpr ((lc b).trans h)]
-    rfl
+  have := zp ⟨a, mem_univ a⟩ ⟨b, mem_univ b⟩
+  rw [← h.not_adj_iff_part_eq] at this
+  rw [← not_iff_not, not_ne_iff, this, card_parts]
+  rcases le_or_lt r (Fintype.card V) with c | c
+  · rw [min_eq_right c]; rfl
+  · have lc : ∀ x, zm ⟨x, _⟩ < Fintype.card V := fun x ↦ (zm ⟨x, mem_univ x⟩).2
+    rw [min_eq_left c.le, Nat.mod_eq_of_lt (lc a), Nat.mod_eq_of_lt (lc b),
+      ← Nat.mod_eq_of_lt ((lc a).trans c), ← Nat.mod_eq_of_lt ((lc b).trans c)]; rfl
+
+end IsTuranMaximal
 
 end Forward
 
@@ -553,6 +491,6 @@ end Reverse
 `r + 1`-cliquefree Turán-maximal graph on `n` vertices. -/
 theorem isTuranMaximal_iff_nonempty_iso_turanGraph (hr : 0 < r) :
     G.IsTuranMaximal r ↔ Nonempty (G ≃g turanGraph (Fintype.card V) r) :=
-  ⟨fun h ↦ h.nonempty_isoTuranGraph, fun h ↦ G.isTuranMaximal_of_iso hr h.some⟩
+  ⟨fun h ↦ h.nonempty_iso_turanGraph, fun h ↦ G.isTuranMaximal_of_iso hr h.some⟩
 
 end SimpleGraph
