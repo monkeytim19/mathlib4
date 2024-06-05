@@ -177,7 +177,7 @@ lemma range_castAddOrderEmb_eq_attach_image :
 open BigOperators in
 theorem card_edgeFinset_turanGraph_add (hr : 0 < r) : (turanGraph (n + r) r).edgeFinset.card =
     (r - 1) * n + (turanGraph n r).edgeFinset.card + r.choose 2 := by
-  set R := (Set.range (@Fin.castAddOrderEmb n r)).toFinset
+  let R := (Set.range (@Fin.castAddOrderEmb n r)).toFinset
   have Rc : R.card = n := by
     simp only [R]
     rw [Set.toFinset_range, card_image_of_injective _ (Fin.castAddOrderEmb r).injective, card_fin]
@@ -187,13 +187,12 @@ theorem card_edgeFinset_turanGraph_add (hr : 0 < r) : (turanGraph (n + r) r).edg
       sum_image (by simp [SetCoe.ext_iff])]
     let K := fun y ↦ (R.filter (fun z : Fin (n + r) ↦ z % r ≠ (n + y) % r)).card
     let L := fun y ↦ (R.filter (fun z : Fin (n + r) ↦ z % r = (n + y) % r)).card
-    change ∑ x in (range r).attach, K x = _
+    change ∑ x ∈ (range r).attach, K x = _
     rw [sum_attach]
-    have feq := fun y ↦ filter_card_add_filter_neg_card_eq_card (s := R)
-      (fun z ↦ z % r ≠ (n + y) % r)
+    have feq := fun y ↦ filter_card_add_filter_neg_card_eq_card (s := R) fun z ↦ z % r ≠ (n + y) % r
     simp_rw [Rc, not_not] at feq
     have Keq : ∀ x ∈ range r, K x = n - L x := fun x _ ↦ by
-      conv_rhs => arg 1; rw [← feq x]
+      nth_rw 1 [← feq x]
       exact (add_tsub_cancel_right _ _).symm
     rw [sum_congr rfl Keq]
     have Lle : ∀ x, L x ≤ n := fun x ↦ Rc.symm ▸ card_filter_le R _
@@ -203,16 +202,15 @@ theorem card_edgeFinset_turanGraph_add (hr : 0 < r) : (turanGraph (n + r) r).edg
     conv_lhs =>
       enter [2, x]
       rw [card_image_of_injective _ (fun _ _ c ↦ by simpa [Subtype.val_inj] using c),
-        filter_attach (fun v ↦ v % r = (n + x) % r), card_map, card_attach, card_filter,
+        filter_attach fun v ↦ v % r = (n + x) % r, card_map, card_attach, card_filter,
         ← sum_range_reflect]
     rw [← sum_range_reflect]
     have rcoe : ∀ b : ℕ, ∀ x ∈ range b, ↑(b - 1 - x) = (b : ℤ) - 1 - x := fun b x hb ↦ by
-      rw [Nat.sub_sub, Int.sub_sub, Int.natCast_sub, Int.natCast_add, Nat.cast_one]
       have := mem_range.mp hb
       omega
     zify
     rw [sum_congr (g := fun x : ℕ ↦
-      ∑ y in range n, if (n - 1 - y) % r = ((n : ℤ) + (r - 1 - x)) % r then 1 else 0) rfl
+      ∑ y ∈ range n, if (n - 1 - y) % r = ((n : ℤ) + (r - 1 - x)) % r then 1 else 0) rfl
       fun x hx ↦ sum_congr rfl (fun y hy ↦ by rw [rcoe r x hx, rcoe n y hy])]
     simp_rw [Int.emod_eq_emod_iff_emod_sub_eq_zero]
     conv_lhs =>
@@ -220,19 +218,15 @@ theorem card_edgeFinset_turanGraph_add (hr : 0 < r) : (turanGraph (n + r) r).edg
       rw [show (n : ℤ) - 1 - y - (n + (r - 1 - x)) = x - y - r by omega, Int.Int.emod_sub_cancel]
     simp_rw [← Int.emod_eq_emod_iff_emod_sub_eq_zero]
     norm_cast; clear! R K L rcoe
-    rw [sum_comm, sum_congr (g := fun y ↦ 1) rfl, sum_const, card_range, smul_eq_mul, mul_one]
-    · intro y _
-      rw [sum_congr (g := fun x ↦ if x = y % r then 1 else 0) rfl
+    rw [sum_comm, sum_congr (g := fun y ↦ 1) rfl (fun y _ ↦ ?_), ← card_eq_sum_ones, card_range]
+    · rw [sum_congr (g := fun x ↦ if x = y % r then 1 else 0) rfl
         (fun x hx ↦ by congr; exact Nat.mod_eq_of_lt (mem_range.mp hx)), sum_ite_eq']
       simp only [mem_range.mpr (Nat.mod_lt y hr), ite_true]
-  · symm
-    apply Iso.card_edgeFinset_eq
+  · apply (Iso.card_edgeFinset_eq _).symm
     rw [Set.coe_toFinset]
-    exact {toEquiv := (@Fin.castAddOrderEmb n r).orderIso, map_rel_iff' := by simp [turanGraph]}
+    use (@Fin.castAddOrderEmb n r).orderIso, by simp [turanGraph]
   · convert card_edgeFinset_top_eq_card_choose_two
-    · ext x' y'
-      obtain ⟨x, hx⟩ := x'
-      obtain ⟨y, hy⟩ := y'
+    · ext ⟨x, hx⟩ ⟨y, hy⟩
       replace hx : n ≤ x := by simpa [R, Fin.castAdd] using hx
       replace hy : n ≤ y := by simpa [R, Fin.castAdd] using hy
       have := (Nat.mod_injOn_Ico n r).eq_iff (mem_Ico.mpr ⟨hx, x.2⟩) (mem_Ico.mpr ⟨hy, y.2⟩)
@@ -418,7 +412,7 @@ lemma induce_compl_edgeFinset_card {m} (H : SimpleGraph (Fin (m + r)))
 open Classical BigOperators in
 lemma sum_card_filter_adj_le_sub_mul {m} (H : SimpleGraph (Fin (m + r)))
     (cf : H.CliqueFree (r + 1)) (K : Finset (Fin (m + r))) (Kp : H.IsNClique r K) :
-    ∑ b in Kᶜ, card (filter (fun x ↦ H.Adj x b) K) ≤ (r - 1) * m := by
+    ∑ b ∈ Kᶜ, card (filter (fun x ↦ H.Adj x b) K) ≤ (r - 1) * m := by
   suffices ∀ b ∈ Kᶜ, ∃ a ∈ K, ¬H.Adj a b by
     have lt : ∀ b ∈ Kᶜ, (K.filter (H.Adj · b)).card ≤ r - 1 := by
       intro b mb
@@ -459,10 +453,10 @@ theorem isTuranMaximal_turanGraph' : (turanGraph n r).IsTuranMaximal r := by
     rw [Nat.eq_add_of_sub_eq b rfl]
     replace ih := ih.resolve_left hr.ne'
     apply Or.inr
-    refine' ⟨turanGraph_cliqueFree hr, _⟩
+    refine ⟨turanGraph_cliqueFree hr, ?_⟩
     intro H _ cf
     wlog itm : H.IsTuranMaximal r generalizing H
-    · obtain ⟨S, Z⟩ := exists_IsTuranMaximal (V := Fin _) hr
+    · obtain ⟨S, Z⟩ := exists_IsTuranMaximal (V := Fin (n - r + r)) hr
       classical exact (Z.2 H cf).trans (this S Z.1 Z)
     have ncf := H.not_cliqueFree_of_isTuranMaximal (r := r) hr (by simp)
     convert card_edgeFinset_le_card_turanGraph_calc hr H (by convert itm) (ncf itm) ih
