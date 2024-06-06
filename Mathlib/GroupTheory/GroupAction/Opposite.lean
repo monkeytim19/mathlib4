@@ -49,29 +49,6 @@ instance instMulDistribMulAction [Monoid M] [Monoid α] [MulDistribMulAction M �
   smul_mul _ _ _ := unop_injective <| smul_mul' _ _ _
   smul_one _ := unop_injective <| smul_one _
 
-@[to_additive]
-instance instIsScalarTower [SMul M N] [SMul M α] [SMul N α] [IsScalarTower M N α] :
-    IsScalarTower M N αᵐᵒᵖ where
-  smul_assoc _ _ _ := unop_injective <| smul_assoc _ _ _
-
-@[to_additive]
-instance instSMulCommClass [SMul M α] [SMul N α] [SMulCommClass M N α] :
-    SMulCommClass M N αᵐᵒᵖ where
-  smul_comm _ _ _ := unop_injective <| smul_comm _ _ _
-
-@[to_additive]
-instance instIsCentralScalar [SMul M α] [SMul Mᵐᵒᵖ α] [IsCentralScalar M α] :
-    IsCentralScalar M αᵐᵒᵖ where
-  op_smul_eq_smul _ _ := unop_injective <| op_smul_eq_smul _ _
-
-theorem op_smul_eq_op_smul_op [SMul M α] [SMul Mᵐᵒᵖ α] [IsCentralScalar M α] (r : M) (a : α) :
-    op (r • a) = op r • op a := (op_smul_eq_smul r (op a)).symm
-#align mul_opposite.op_smul_eq_op_smul_op MulOpposite.op_smul_eq_op_smul_op
-
-theorem unop_smul_eq_unop_smul_unop [SMul M α] [SMul Mᵐᵒᵖ α] [IsCentralScalar M α] (r : Mᵐᵒᵖ)
-    (a : αᵐᵒᵖ) : unop (r • a) = unop r • unop a := (unop_smul_eq_smul r (unop a)).symm
-#align mul_opposite.unop_smul_eq_unop_smul_unop MulOpposite.unop_smul_eq_unop_smul_unop
-
 end MulOpposite
 
 /-! ### Actions _by_ the opposite type (right actions)
