@@ -86,13 +86,13 @@ def evaluation (X : Cᵒᵖ) : SheafOfModules.{v} R ⥤ ModuleCat.{v} (R.val.obj
 /-- The type of sections of a sheaf of modules. -/
 abbrev sections (M : SheafOfModules.{v} R) : Type _ := M.val.sections
 
-variable [J.HasSheafCompose (forget₂ RingCat.{u} AddCommGroupCat.{u})]
+variable [J.HasSheafCompose (forget₂ RingCat.{u} AddCommGrp.{u})]
 
 /-- The obvious free sheaf of modules of rank `1`. -/
 @[simps]
 def unit : SheafOfModules R where
   val := PresheafOfModules.unit R.val
-  isSheaf := ((sheafCompose J (forget₂ RingCat.{u} AddCommGroupCat.{u})).obj R).cond
+  isSheaf := ((sheafCompose J (forget₂ RingCat.{u} AddCommGrp.{u})).obj R).cond
 
 variable {R}
 

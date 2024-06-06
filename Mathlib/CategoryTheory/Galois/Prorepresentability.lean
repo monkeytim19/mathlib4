@@ -3,7 +3,7 @@ Copyright (c) 2024 Christian Merten. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import Mathlib.Algebra.Category.GroupCat.Basic
+import Mathlib.Algebra.Category.Grp.Basic
 import Mathlib.CategoryTheory.Galois.Decomposition
 import Mathlib.CategoryTheory.Limits.FunctorCategory
 
@@ -167,8 +167,8 @@ open PointedGaloisObject
 
 /-- The diagram sending each pointed Galois object to its automorphism group
 as an object of `C`. -/
-noncomputable def autGaloisSystem : PointedGaloisObject F ⥤ GroupCat.{u₂} where
-  obj := fun A ↦ GroupCat.of <| Aut (A : C)
+noncomputable def autGaloisSystem : PointedGaloisObject F ⥤ Grp.{u₂} where
+  obj := fun A ↦ Grp.of <| Aut (A : C)
   map := fun {A B} f ↦ (autMapHom f : Aut (A : C) →* Aut (B : C))
   map_id := fun A ↦ by
     ext (σ : Aut A.obj)
